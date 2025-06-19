@@ -1,8 +1,8 @@
 import { LOGIN_URL } from "../../URL/Url";
 
 export interface LoginResponse {
-  token: string;
-  profilUtilisateur: {
+    token: string;
+    profilUtilisateur: {
     id: number;
     nom: string;
     prenom: string;

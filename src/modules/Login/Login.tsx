@@ -9,32 +9,37 @@ import {
   Button,
 } from "@mui/material";
 import { Logout } from "@mui/icons-material";
+import { loginSuccess } from '../shared/Slices/authSlice';
+import { useAppDispatch } from '../shared/hooks/redux-hooks';
 
 const Login = () => {
     const [matricule, setMatricule] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
     const [alertType, setAlertType] = useState<"success" | "error">("success");
+    const dispatch = useAppDispatch();
 
     const handleLogin = async () => {
-    if (!matricule || !password) {
-      setMessage("Veuillez remplir tous les champs.");
-      setAlertType("error");
-      return;
-    }
-
-    try {
-        const result = await loginService(matricule, password);
-        console.log("Résultat reçu :", result);
-
-        localStorage.setItem("token", result.token);
-
-        setMessage("Connexion réussie !");
-        setAlertType("success");
-
-        } catch (error: any) {
-        setMessage(error.message);
+        if (!matricule || !password) {
+        setMessage("Veuillez remplir tous les champs.");
         setAlertType("error");
+        return;
+        }
+
+        try {
+            const result = await loginService(matricule, password);
+            console.log("Résultat reçu :", result);
+
+            localStorage.setItem("token", result.token);
+            // ✅ Enregistrer dans Redux
+            dispatch(loginSuccess(result));
+
+            setMessage("Connexion réussie !");
+            setAlertType("success");
+
+            } catch (error: any) {
+            setMessage(error.message);
+            setAlertType("error");
         }
     };
 
@@ -116,3 +121,5 @@ const Login = () => {
     )
 }
 export default Login;
+
+
