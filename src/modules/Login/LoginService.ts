@@ -24,6 +24,7 @@ export async function loginService(mlle: string, passe: string): Promise<LoginRe
     if (!res.ok) {
       const errorMsg = await res.text();
       throw new Error(errorMsg || `Erreur ${res.status}`);
+      
     }
 
     return await res.json();

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'; 
 import { loginService } from './LoginService';
 import {
   Container,
@@ -18,6 +19,8 @@ const Login = () => {
     const [message, setMessage] = useState("");
     const [alertType, setAlertType] = useState<"success" | "error">("success");
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+
 
     const handleLogin = async () => {
         if (!matricule || !password) {
@@ -36,6 +39,15 @@ const Login = () => {
 
             setMessage("Connexion réussie !");
             setAlertType("success");
+            console.log("huuuuu");
+
+            if (Number(result.profilUtilisateur.role) === 1) {
+                console.log("huuuuu adminnn");
+                navigate("/admin");
+            } else if (Number(result.profilUtilisateur.role) === 2) {
+                console.log("huuuuu userrrrr");
+                navigate("/user");
+            }
 
             } catch (error: any) {
             setMessage(error.message);
