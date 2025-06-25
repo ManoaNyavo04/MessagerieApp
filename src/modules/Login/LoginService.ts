@@ -6,7 +6,9 @@ export interface LoginResponse {
     id: number;
     nom: string;
     prenom: string;
-    role: string;
+    matricule: string;
+    id_role: number;
+    role: number;
   };
 }
 

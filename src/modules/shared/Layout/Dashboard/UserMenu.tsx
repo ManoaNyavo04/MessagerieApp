@@ -5,6 +5,8 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import DevicesIcon from '@mui/icons-material/Devices';
+import WorkspacesIcon from '@mui/icons-material/Workspaces';
+import ChatIcon from '@mui/icons-material/Chat';
 
 
 const UserMenu = () => {
@@ -14,9 +16,9 @@ const UserMenu = () => {
             {/* <SelectBox> */}
                 <ListItemButton>
                 <ListItemIcon sx={{ marginRight: -2.5 }}>
-                    <DevicesIcon sx={{color: 'white'}}/>
+                    <ChatIcon  sx={{color: 'white'}}/>
                 </ListItemIcon>
-                <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="User 1" />
+                <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="Discussion" />
                 </ListItemButton>
             {/* </SelectBox> */}
             </StyledLink>
@@ -25,9 +27,9 @@ const UserMenu = () => {
             {/* <SelectBox> */}
                 <ListItemButton>
                 <ListItemIcon sx={{ marginRight: -2.5 }}>
-                    <DevicesIcon sx={{color: 'white'}}/>
+                    <WorkspacesIcon  sx={{color: 'white'}}/>
                 </ListItemIcon>
-                <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="User 2" />
+                <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="Espace de travail" />
                 </ListItemButton>
             {/* </SelectBox> */}
             </StyledLink>

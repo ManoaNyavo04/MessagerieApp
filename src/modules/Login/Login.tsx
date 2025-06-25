@@ -31,23 +31,39 @@ const Login = () => {
 
         try {
             const result = await loginService(matricule, password);
-            console.log("Résultat reçu :", result);
+            // console.log("Résultat reçu :", result);
+
+            const formattedResult = {
+                token: result.token,
+                profilUtilisateur: {
+                    ...result.profilUtilisateur,
+                    role: Number(result.profilUtilisateur.id_role),
+                },
+            };
+            console.log("Résultat reçu :", formattedResult);
 
             localStorage.setItem("token", result.token);
+            localStorage.setItem("profilUtilisateur", JSON.stringify(result.profilUtilisateur)); // <-- Ajoute ceci
+
             // ✅ Enregistrer dans Redux
-            dispatch(loginSuccess(result));
+            dispatch(loginSuccess(formattedResult));
 
             setMessage("Connexion réussie !");
             setAlertType("success");
-            console.log("huuuuu");
+            // console.log("huuuuu");
 
-            if (Number(result.profilUtilisateur.role) === 1) {
+            if (formattedResult.profilUtilisateur) {
+                console.log("huuuuu connecterrrr");
+                navigate("/messagerie");
+            }
+
+            /*if (formattedResult.profilUtilisateur.role=== 1) {
                 console.log("huuuuu adminnn");
                 navigate("/admin");
-            } else if (Number(result.profilUtilisateur.role) === 2) {
+            } else if (formattedResult.profilUtilisateur.role === 2) {
                 console.log("huuuuu userrrrr");
-                navigate("/user");
-            }
+                navigate("/messagerie");
+            }*/
 
             } catch (error: any) {
             setMessage(error.message);

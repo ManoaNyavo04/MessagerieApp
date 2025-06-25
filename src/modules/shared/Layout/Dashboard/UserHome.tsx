@@ -3,8 +3,8 @@ import Dashboard from './Dashboard'
 
 const UserHome = () => {
   return (
-    // <Dashboard/>
-    <p>wxcvbn,;:</p>
+    <Dashboard/>
+    // <p>wxcvbn,;:</p>
   )
 }
 

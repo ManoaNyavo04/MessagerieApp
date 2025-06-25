@@ -5,17 +5,23 @@ interface ProfilUtilisateur {
   id: number;
   nom: string;
   prenom: string;
-  role: string;
+  matricule: string;
+  id_role: number;
+  role: number;
 }
 
 interface AuthState {
   token: string | null;
   profilUtilisateur: ProfilUtilisateur | null;
+  isAuthenticated: boolean;
 }
 
 const initialState: AuthState = {
-  token: null,
-  profilUtilisateur: null,
+  token: localStorage.getItem("token") || null,
+  profilUtilisateur: localStorage.getItem("profilUtilisateur")
+    ? JSON.parse(localStorage.getItem("profilUtilisateur") as string)
+    : null,
+  isAuthenticated: !!localStorage.getItem('token'),
 };
 
 const authSlice = createSlice({
@@ -28,6 +34,7 @@ const authSlice = createSlice({
     ) => {
       state.token = action.payload.token;
       state.profilUtilisateur = action.payload.profilUtilisateur;
+      state.isAuthenticated = true; 
     },
     logout: (state) => {
       state.token = null;

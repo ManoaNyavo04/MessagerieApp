@@ -1,13 +1,19 @@
-import React, { JSX } from 'react'
-import { Navigate, Outlet } from 'react-router-dom';
+import React, { JSX, useEffect } from 'react'
+import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../hooks/redux-hooks';
 
 const UserRoute = () => {
   const { profilUtilisateur } = useAppSelector((state) => state.auth);
 
-  if (!profilUtilisateur || profilUtilisateur.role !== "2") {
-    return <Navigate to="/login" replace />;
-  }
+  const navigate = useNavigate();
+
+  useEffect(()=> {
+    if(!profilUtilisateur || profilUtilisateur.id_role !== 2) {
+      navigate("/login");
+    }
+  },[navigate, profilUtilisateur])
+  
+
 
   return <Outlet />;
 };

@@ -3,8 +3,8 @@ import Dashboard from './Dashboard'
 
 const AdminHome = () => {
   return (
-    // <Dashboard/>
-    <p>ghjklm</p>
+    <Dashboard/>
+    // <p>ghjklm</p>
   )
 }
 

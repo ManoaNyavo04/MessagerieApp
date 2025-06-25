@@ -16,7 +16,7 @@ const AdminMenu = () => {
                 <ListItemIcon sx={{ marginRight: -2.5 }}>
                     <DevicesIcon sx={{color: 'white'}}/>
                 </ListItemIcon>
-                <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="User 1" />
+                <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="Gestion espace de travail" />
                 </ListItemButton>
             {/* </SelectBox> */}
             </StyledLink>
@@ -27,7 +27,7 @@ const AdminMenu = () => {
                 <ListItemIcon sx={{ marginRight: -2.5 }}>
                     <DevicesIcon sx={{color: 'white'}}/>
                 </ListItemIcon>
-                <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="User 2" />
+                <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="Membres" />
                 </ListItemButton>
             {/* </SelectBox> */}
             </StyledLink>

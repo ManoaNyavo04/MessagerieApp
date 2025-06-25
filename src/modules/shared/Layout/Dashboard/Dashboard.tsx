@@ -19,6 +19,7 @@ import { logout } from '../../Slices/authSlice';
 // import '../style.css';
 import UserMenu from './UserMenu';
 import AdminMenu from './AdminMenu';
+import BtnLogout from './BtnLogout';
 
 
 function Copyright(props: any) {
@@ -172,8 +173,9 @@ export default function Dashboard() {
   const toggleDrawer = () => {
     setOpen(!open);
   };
+ 
   const { profilUtilisateur } = useAppSelector((state) => state.auth);
-  const isAdmin = profilUtilisateur?.role === "1"; // ou "admin" si string
+  const isAdmin = profilUtilisateur?.id_role === 1; // ou "admin" si string
 
 
   return (
@@ -220,10 +222,10 @@ export default function Dashboard() {
                 fontFamily: "Russo one",marginLeft: 3, marginTop : 1
                }}
             >
-              LALAMBY : Logistique
+              LALAMBY : messagerie
             </Typography>
             {/* <NotifIcon /> */}
-            {/* <BtnLogout /> */}
+            <BtnLogout />
 
           </Toolbar>
         </AppBar>
@@ -274,12 +276,13 @@ export default function Dashboard() {
 
           }}
         >
+
           <Toolbar />
 
 
           <Box sx={{ mt: 1, mb: 3, p: 1 }}>
             <Box mb={1}>
-              {/* <BasicBreadcrumbs /> */}
+             {profilUtilisateur?.id_role}
             </Box>
             <Outlet />
             <Copyright sx={{ pt: 4 }} />
