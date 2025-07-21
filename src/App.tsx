@@ -12,6 +12,7 @@ import { useAppDispatch } from './modules/shared/hooks/redux-hooks';
 import { loginSuccess } from './modules/shared/Slices/authSlice';
 import Messagerie from './modules/Messagerie/Messagerie';
 import PrivateRoute from './modules/shared/Layout/PrivateRoute';
+import PageUtilisateur from './modules/Utilisateur/PageUtilisateur';
 
 
 
@@ -24,7 +25,11 @@ function App() {
         <Route path="/login" element={<Login />} />
         {/* Admin Routes */}
         <Route element={<AdminRoute />}>
-          <Route path="/admin" element={<AdminHome />} />
+          <Route element={<Dashboard />}>
+            <Route path="/admin" element={<AdminHome />} />
+            <Route path="/gestion-utilisateur" element={<PageUtilisateur />} />
+          </Route>
+          
           {/* <Route path="/messagerie" element={<Messagerie />} /> */}
           {/* ...autres routes admin */}
         </Route>

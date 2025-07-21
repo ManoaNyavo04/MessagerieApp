@@ -12,28 +12,28 @@ import ChatIcon from '@mui/icons-material/Chat';
 const UserMenu = () => {
   return (
     <>
-            <StyledLink to={""}>
-            {/* <SelectBox> */}
-                <ListItemButton>
-                <ListItemIcon sx={{ marginRight: -2.5 }}>
-                    <ChatIcon  sx={{color: 'white'}}/>
-                </ListItemIcon>
-                <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="Discussion" />
-                </ListItemButton>
-            {/* </SelectBox> */}
-            </StyledLink>
+        <StyledLink to={"/messagerie"}>
+        {/* <SelectBox> */}
+            <ListItemButton>
+            <ListItemIcon sx={{ marginRight: -2.5 }}>
+                <ChatIcon  sx={{color: 'white'}}/>
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="Discussion" />
+            </ListItemButton>
+        {/* </SelectBox> */}
+        </StyledLink>
 
-            <StyledLink to={""}>
-            {/* <SelectBox> */}
-                <ListItemButton>
-                <ListItemIcon sx={{ marginRight: -2.5 }}>
-                    <WorkspacesIcon  sx={{color: 'white'}}/>
-                </ListItemIcon>
-                <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="Espace de travail" />
-                </ListItemButton>
-            {/* </SelectBox> */}
-            </StyledLink>
-        </>
+        <StyledLink to={""}>
+        {/* <SelectBox> */}
+            <ListItemButton>
+            <ListItemIcon sx={{ marginRight: -2.5 }}>
+                <WorkspacesIcon  sx={{color: 'white'}}/>
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="Espace de travail" />
+            </ListItemButton>
+        {/* </SelectBox> */}
+        </StyledLink>
+    </>
   )
 }
 

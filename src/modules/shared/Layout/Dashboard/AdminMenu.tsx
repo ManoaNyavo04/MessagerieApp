@@ -21,7 +21,7 @@ const AdminMenu = () => {
             {/* </SelectBox> */}
             </StyledLink>
 
-            <StyledLink to={""}>
+            <StyledLink to={"/gestion-utilisateur"}>
             {/* <SelectBox> */}
                 <ListItemButton>
                 <ListItemIcon sx={{ marginRight: -2.5 }}>

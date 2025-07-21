@@ -7,9 +7,10 @@
     "@emoji-mart/react": "^1.1.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@mui/icons-material": "^5.11.16",
-    "@mui/material": "^5.15.10",
-    "@mui/x-data-grid": "^7.5.0",
+    "@microsoft/signalr": "^8.0.7",
+    "@mui/icons-material": "^5.17.1",
+    "@mui/material": "^5.17.1",
+    "@mui/x-data-grid": "^7.29.8",
     "@mui/x-data-grid-generator": "^7.7.1",
     "@reduxjs/toolkit": "^2.8.2",
     "@testing-library/dom": "^10.4.0",
@@ -18,10 +19,9 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.126",
-    "@types/react-dom": "^19.1.6",
     "emoji-mart": "^5.6.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.2",
     "react-scripts": "5.0.1",
@@ -53,6 +53,7 @@
     ]
   },
   "devDependencies": {
-    "@types/react": "^19.1.8"
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.3.7"
   }
 }
