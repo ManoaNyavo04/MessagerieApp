@@ -283,6 +283,7 @@ export default function Dashboard() {
           <Box sx={{ mt: 1, mb: 3, p: 1 }}>
             <Box mb={1}>
              {profilUtilisateur?.id_role}
+             {/* {profilUtilisateur?.id_utilisateur} */}
             </Box>
             <Outlet />
             <Copyright sx={{ pt: 4 }} />
