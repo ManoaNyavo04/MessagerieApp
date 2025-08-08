@@ -35,7 +35,7 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
         {discussions.map((discussion) => (
           <ListItem key={`${discussion.type}-${discussion.id}`} disablePadding>
             <ListItemButton onClick={() => onSelectDiscussion(discussion)}>
-              <ListItemText primary={discussion.nom} secondary={discussion.type} />
+              <ListItemText sx={{ color: 'black' }} primary={discussion.nom} secondary={discussion.type} />
             </ListItemButton>
           </ListItem>
         ))}

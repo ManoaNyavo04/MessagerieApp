@@ -104,7 +104,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }
 
-      ///fetchMessages();
+      fetchMessages();
       setupConnection();
 
       // Nettoyage éventuel (optionnel : quitter groupe précédent)
@@ -119,22 +119,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
     }, [currentDiscussion?.id, currentDiscussion?.type, token, currentUser?.id, messages]);
 
-  let connection2: signalR.HubConnection | null = null;
-  useEffect(() => {   
-    if (!connection2) {
 
-      connection2 = new HubConnectionBuilder().withUrl("http://localhost:5032/chathub").build();
-
-      
-      connection2.on("ReceiveMessage", (message: any) => {
-         alert("Nouveau message reçu : " + message);
-      });
-
-      connection2.on("seenRapport", () => {       
-      });
-      connection2.start().catch((err) => alert("vous avez perdu la connection avec le serveur"));
-    }
-  }, [connection2]);
 
     const addEmoji = (emoji: any) => {
       setMessages((prev) => [...prev, {

@@ -21,3 +21,19 @@ export async function getMesDiscussions(token: string): Promise<any[]> {
     throw new Error("Impossible de charger les discussions");
   }
 }
+
+export async function getMessages(token: string, targetId: number, type: string) {
+   const res = await fetch(`${USER_DISCUSSION}/messages?targetId=${targetId}&type=${type}`, {
+    headers: {
+      method: 'GET',
+      Authorization: `Bearer ${token}`, // les backticks manquaient
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Erreur lors de la récupération des messages");
+  }
+
+  return await res.json(); // retourne une liste de MessageModel
+}
+

@@ -2,6 +2,7 @@ import React from 'react'
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface ProfilUtilisateur {
+  id_utilisateur: any;
   id: number;
   nom: string;
   prenom: string;

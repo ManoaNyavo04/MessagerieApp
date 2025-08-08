@@ -10,6 +10,16 @@ export interface Utilisateur {
   id_role: number;
 }
 
+export interface UtilisateurDto {
+  id_utilisateur: number,
+  nom: string,
+  prenom: string,
+  matricule: string,
+  mdp: string,
+  id_role: number,
+  role: string
+}
+
 type ApiUtilisateur = Omit<Utilisateur, 'id'> & { id_utilisateur: number };
 
 // Fonction pour récupérer tous les utilisateurs
@@ -47,4 +57,28 @@ export async function getUtilisateur(id: number, token: string) {
     },
   });
   return await res.json();
+
+}
+
+export async function addUtilisateurService(utilisateur: UtilisateurDto, token: string) {
+  try {
+    const response = await fetch(`${ALL_USER_URL}/addUtilisateur`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(utilisateur),
+    });
+
+    if (!response.ok) {
+      const errorMsg = await response.text();
+      throw new Error(errorMsg || `Erreur ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error("Erreur lors de l'ajout de l'utilisateur :", error);
+    throw error.message || "Erreur inconnue";
+  }
 }

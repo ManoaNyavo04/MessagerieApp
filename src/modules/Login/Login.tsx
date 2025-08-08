@@ -36,10 +36,16 @@ const Login = () => {
             const formattedResult = {
                 token: result.token,
                 profilUtilisateur: {
-                    ...result.profilUtilisateur,
+                    id_utilisateur: result.profilUtilisateur.id,
+                    id: result.profilUtilisateur.id,
+                    nom: result.profilUtilisateur.nom,
+                    prenom: result.profilUtilisateur.prenom,
+                    matricule: result.profilUtilisateur.matricule,
+                    id_role: result.profilUtilisateur.id_role,
                     role: Number(result.profilUtilisateur.id_role),
                 },
             };
+
             console.log("Résultat reçu :", formattedResult);
 
             localStorage.setItem("token", result.token);
@@ -54,16 +60,12 @@ const Login = () => {
 
             if (formattedResult.profilUtilisateur) {
                 console.log("huuuuu connecterrrr");
-                navigate("/messagerie");
+                navigate("/messagerie", {
+                    state: { currentUser: formattedResult.profilUtilisateur }
+                });
+
             }
 
-            /*if (formattedResult.profilUtilisateur.role=== 1) {
-                console.log("huuuuu adminnn");
-                navigate("/admin");
-            } else if (formattedResult.profilUtilisateur.role === 2) {
-                console.log("huuuuu userrrrr");
-                navigate("/messagerie");
-            }*/
 
             } catch (error: any) {
             setMessage(error.message);

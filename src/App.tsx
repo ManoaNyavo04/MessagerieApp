@@ -13,11 +13,16 @@ import { loginSuccess } from './modules/shared/Slices/authSlice';
 import Messagerie from './modules/Messagerie/Messagerie';
 import PrivateRoute from './modules/shared/Layout/PrivateRoute';
 import PageUtilisateur from './modules/Utilisateur/PageUtilisateur';
+import MessageriePage from './modules/Messagerie/MessageriePage';
+import { useSelector } from 'react-redux';
+import { RootState } from './modules/shared/Store/store';
 
 
 
 function App() {
   const dispatch = useAppDispatch(); 
+  // const token = localStorage.getItem('token');
+  const token = useSelector((state: RootState) => state.auth.token);
 
   return (
     <BrowserRouter>
@@ -36,7 +41,11 @@ function App() {
 
         <Route element={<PrivateRoute />}>
           <Route element={<Dashboard />}>
-            <Route path="/messagerie" element={<Messagerie />} />
+            {/* <Route path="/messagerie" element={<Messagerie />} /> */}
+            <Route path="/messagerie" element={<MessageriePage token={token || ''
+
+            } />} />
+            
           </Route>
         </Route>
 

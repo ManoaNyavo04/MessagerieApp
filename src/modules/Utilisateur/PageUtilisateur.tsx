@@ -3,9 +3,11 @@ import { getAllUtilisateursService, Utilisateur } from './UtilisateurService';
 import { Button, Grid, Paper } from '@mui/material';
 import GenericList from '../shared/components/GenericList';
 import { FileOpen } from '@mui/icons-material';
+import FormUtilisateur from './FormUtilisateur';
 
 const PageUtilisateur = () => {
   const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
+  const [openForm, setOpenForm] = useState(false);
 
   const viewUser = (id: number) => {
     const user = utilisateurs.find(u => u.id === id);
@@ -21,6 +23,7 @@ const PageUtilisateur = () => {
     if (!token) {
       console.error("Aucun token trouvé.");
       return;
+      
     }
 
     getAllUtilisateursService(token)
@@ -42,8 +45,12 @@ const PageUtilisateur = () => {
     { field: "nom", headerName: "Nom", width: 150 },
     { field: "prenom", headerName: "Prénom", width: 150 },
     { field: "matricule", headerName: "Matricule", width: 150 },
-    { field: "id_role", headerName: "Rôle", width: 120 },
+    { field: "role", headerName: "Rôle", width: 120 },
   ];
+
+  
+  const handleOpenForm = () => setOpenForm(true);
+  const handleCloseForm = () => setOpenForm(false);
 
   return (
     <>
@@ -58,8 +65,10 @@ const PageUtilisateur = () => {
               {/* {(context.isAdminLogistique || context.isInformaticien) && */}
                 <>
                   {/* <FormArticle executable={actualiserDonnees} /> */}
-                  <Button size="large" variant='outlined' startIcon={<FileOpen />} >Ajouter des utilisateurs</Button>
-                  <Button size="large" variant='outlined' startIcon={<FileOpen />} >Ajouter des utilisateurs</Button>
+                  <Button size="large" variant='outlined' startIcon={<FileOpen />} onClick={handleOpenForm}>
+                    Ajouter
+                  </Button>
+                  <Button size="large" variant='outlined' startIcon={<FileOpen />} >Rafraicir</Button>
                 </>
               {/* } */}
             </div>
@@ -68,7 +77,10 @@ const PageUtilisateur = () => {
               rowClick={viewUser}
               columns={columns}
               rows={utilisateurs}
+
+
             />
+            <FormUtilisateur open={openForm} onClose={handleCloseForm} />
           </Paper>
         </Grid>
       </Grid>
