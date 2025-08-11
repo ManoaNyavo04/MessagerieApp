@@ -80,8 +80,10 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
     const handler = (msg: any) => {
       console.log("📥 Nouveau message reçu via SignalR :", msg);
-      fetchMessages();
+      // fetchMessages();
+      setMessages(prev => [...prev, msg]);
     };
+
 
     connection.on("ReceiveMessage", handler);
 
@@ -91,71 +93,40 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   }, [connection, currentDiscussion]);
 
 
-
-
   const envoyerMessage = async (e: React.FormEvent) => {
-
     e.preventDefault();
-    if (!connection) {
-      console.warn("🟡 Connexion SignalR non initialisée.");
-      return;
-    }
+    if (!message.trim() || !connection) return;
 
-    if (connection.state !== HubConnectionState.Connected) {
-      console.warn("🔴 Connexion non encore établie :", connection.state);
-      return;
-    }
+    const isPrive = currentDiscussion?.type === 'prive';
+    const isGroupe = currentDiscussion?.type === 'groupe';
+    const idDest = isPrive ? currentDiscussion?.id : null;
+    const idGroupe = isGroupe ? currentDiscussion?.id : null;
+    const groupName = currentDiscussion?.nom || "";
 
+    // ✅ Affiche directement côté client
+    const tempMsg = {
+      id_expediteur: currentUser.id,
+      contenu: message,
+      date_envoie: new Date().toISOString()
+    };
+    setMessages(prev => [...prev, tempMsg]);
 
-    if (message.trim() === '') {
-      return;
-    }
+    setMessage("");
 
     try {
-      const idExp = currentUser?.id;
-
-      // Logique adaptée :
-      const isPrive = currentDiscussion?.type === 'prive';
-      const isGroupe = currentDiscussion?.type === 'groupe';
-
-      const idDest = isPrive ? currentDiscussion?.id : null;
-      const idGroupe = isGroupe ? currentDiscussion?.id : null;
-
-      // Définir groupName localement
-      const groupName =
-        currentDiscussion && currentDiscussion.type === "groupe"
-          ? `${currentDiscussion.nom}`
-          : currentDiscussion
-            ? `${currentDiscussion.nom}`
-            : '';
-
-      console.log("🧪 Envoi message :", {
-        idExp,
-        idDest,
-        idGroupe,
-        type: currentDiscussion?.type
-      });
-
-      console.log("🧠 currentDiscussion:", currentDiscussion);
-
       await connection.invoke(
         "SendMessageToDiscussion",
-        idExp,
+        currentUser.id,
         idDest,
         idGroupe,
-        message.trim(),
+        tempMsg.contenu,
         groupName
       );
-      console.log("✅ Message envoyé :", message.trim());
-
-      setMessage('');
-      fetchMessages()
-    } catch (error: any) {
-      console.error("❌ Erreur lors de l'envoi du message :", error?.message || error);
-      alert("Erreur lors de l'envoi du message : " + (error?.message || "inconnue"));
+    } catch (err) {
+      console.error("❌ Erreur envoi message", err);
     }
-
   };
+
 
 
   if (!token || !currentUser?.id) {
