@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { getAllUtilisateursService, Utilisateur } from './UtilisateurService';
-import { Button, Grid, Paper } from '@mui/material';
+import { Button, Grid, IconButton, Menu, MenuItem, Paper } from '@mui/material';
 import GenericList from '../shared/components/GenericList';
-import { FileOpen } from '@mui/icons-material';
+import { FileOpen, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import FormUtilisateur from './FormUtilisateur';
 
 const PageUtilisateur = () => {
@@ -23,7 +23,7 @@ const PageUtilisateur = () => {
     if (!token) {
       console.error("Aucun token trouvé.");
       return;
-      
+
     }
 
     getAllUtilisateursService(token)
@@ -39,6 +39,42 @@ const PageUtilisateur = () => {
       });
   }, []);
 
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedUser, setSelectedUser] = useState<Utilisateur | null>(null);
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, user: Utilisateur) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedUser(user);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEdit = () => {
+    setOpenForm(true);
+    handleMenuClose();
+  };
+
+  const handleDelete = () => {
+    console.log("🗑️ Supprimer utilisateur :", selectedUser);
+    handleMenuClose();
+  };
+
+  const actionColumn = {
+    field: "actions",
+    headerName: "Actions",
+    width: 100,
+    sortable: false,
+    renderCell: (params: any) => (
+      <>
+        <IconButton onClick={(e) => handleMenuClick(e, params.row)}>
+          <MoreVertIcon />
+        </IconButton>
+      </>
+    )
+  };
+
 
 
   const columns = [
@@ -46,9 +82,10 @@ const PageUtilisateur = () => {
     { field: "prenom", headerName: "Prénom", width: 150 },
     { field: "matricule", headerName: "Matricule", width: 150 },
     { field: "role", headerName: "Rôle", width: 120 },
+    actionColumn
   ];
 
-  
+
   const handleOpenForm = () => setOpenForm(true);
   const handleCloseForm = () => setOpenForm(false);
 
@@ -61,15 +98,15 @@ const PageUtilisateur = () => {
             <h3 style={{ marginBottom: -30, fontFamily: 'Rubik', fontSize: 20 }}>
               Liste des utilisateurs
             </h3>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' , marginBottom: 15}}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 15 }}>
               {/* {(context.isAdminLogistique || context.isInformaticien) && */}
-                <>
-                  {/* <FormArticle executable={actualiserDonnees} /> */}
-                  <Button size="large" variant='outlined' startIcon={<FileOpen />} onClick={handleOpenForm}>
-                    Ajouter
-                  </Button>
-                  <Button size="large" variant='outlined' startIcon={<FileOpen />} >Rafraicir</Button>
-                </>
+              <>
+                {/* <FormArticle executable={actualiserDonnees} /> */}
+                <Button size="large" variant='outlined' startIcon={<FileOpen />} onClick={handleOpenForm}>
+                  Ajouter
+                </Button>
+                <Button size="large" variant='outlined' startIcon={<FileOpen />} >Rafraicir</Button>
+              </>
               {/* } */}
             </div>
 
@@ -80,6 +117,15 @@ const PageUtilisateur = () => {
 
 
             />
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+            >
+              <MenuItem onClick={handleEdit}>Modifier</MenuItem>
+              <MenuItem onClick={handleDelete}>Supprimer</MenuItem>
+            </Menu>
+
             <FormUtilisateur open={openForm} onClose={handleCloseForm} />
           </Paper>
         </Grid>

@@ -16,6 +16,7 @@ import PageUtilisateur from './modules/Utilisateur/PageUtilisateur';
 import MessageriePage from './modules/Messagerie/MessageriePage';
 import { useSelector } from 'react-redux';
 import { RootState } from './modules/shared/Store/store';
+import { SignalRProvider } from './contexts/SignalRContext';
 
 
 
@@ -25,6 +26,7 @@ function App() {
   const token = useSelector((state: RootState) => state.auth.token);
 
   return (
+    <SignalRProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -58,6 +60,7 @@ function App() {
       </Routes>
 
     </BrowserRouter>
+    </SignalRProvider>
   );
 }
 

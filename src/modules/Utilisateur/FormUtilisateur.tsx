@@ -6,29 +6,43 @@ import { Add, Cancel } from '@mui/icons-material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons'
 import { getAllRolesService, Role } from '../Role/RoleService'
-import { UtilisateurDto } from './UtilisateurService'
+import { addUtilisateurService, Utilisateur, UtilisateurDto } from './UtilisateurService'
 
 interface FormUtilisateurProps {
   open: boolean;
   onClose: () => void;
+  utilisateur?: Utilisateur | null; // ✅ Utilisateur à modifier, si présent
+  onUpdated?: () => void; // pour rafraîchir la liste après modification
 }
 
-const FormUtilisateur = ({ open, onClose }: FormUtilisateurProps) => {
+const FormUtilisateur = ({ open, onClose, utilisateur, onUpdated }: FormUtilisateurProps) => {
   const [pending, setPending] = useState(false);
   const [roles, setRoles] = useState<Role[]>([]);
   const [selectedRole, setSelectedRole] = useState<number | null>(null);
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
   const [matricule, setMatricule] = useState("");
-  const token = localStorage.getItem("token"); 
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const token = localStorage.getItem("token"); // ou sessionStorage ou context
+    const token = localStorage.getItem("token");
     if (!token) {
       console.error("Aucun token trouvé.");
       return;
-      
+
     }
+    if (utilisateur) {
+      setNom(utilisateur.nom);
+      setPrenom(utilisateur.prenom);
+      setMatricule(utilisateur.matricule);
+      setSelectedRole(utilisateur.id_role);
+    } else {
+      setNom("");
+      setPrenom("");
+      setMatricule("");
+      setSelectedRole(null);
+    }
+
     getAllRolesService(token)
       .then(data => {
         setRoles(data);
@@ -36,9 +50,9 @@ const FormUtilisateur = ({ open, onClose }: FormUtilisateurProps) => {
       .catch(error => {
         console.error("Erreur lors de la récupération des rôles :", error);
       });
-  }, []);
+  }, [utilisateur]);
 
-  const onsubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const onsubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedRole) {
       alert("Veuillez choisir un rôle.");
@@ -50,16 +64,28 @@ const FormUtilisateur = ({ open, onClose }: FormUtilisateurProps) => {
       return;
     }
 
-    const utilisateurData : UtilisateurDto = {
+    const utilisateurData: UtilisateurDto = {
       id_utilisateur: 0,
       nom,
       prenom,
       matricule,
-      mdp: "", 
+      mdp: "",
       id_role: selectedRole,
       role: "",
     };
     setPending(true);
+
+    try {
+      const response = await addUtilisateurService(utilisateurData, token);
+      console.log("✅ Utilisateur ajouté :", response);
+      alert("Utilisateur ajouté avec succès.");
+      onClose();
+    } catch (error: any) {
+      alert("Erreur : " + error);
+    } finally {
+      setPending(false);
+    }
+
     setTimeout(() => {
       setPending(false);
       onClose(); // Fermer le modal après enregistrement
@@ -79,7 +105,7 @@ const FormUtilisateur = ({ open, onClose }: FormUtilisateurProps) => {
         <Box p={1}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={12}>
-              <h3 style={{ marginBottom: -30, fontFamily: 'Rubik', fontSize: 20 }}>
+              <h3 style={{ fontFamily: 'Rubik', fontSize: 20 }}>
                 Ajout utilisateur
               </h3>
             </Grid>
@@ -87,13 +113,13 @@ const FormUtilisateur = ({ open, onClose }: FormUtilisateurProps) => {
               <form onSubmit={onsubmit}>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
-                    <TextField fullWidth label="Nom" type='text' value={nom} onChange={(e) => setNom(e.target.value)}/>
+                    <TextField fullWidth label="Nom" type='text' value={nom} onChange={(e) => setNom(e.target.value)} />
                   </Grid>
                   <Grid item xs={6}>
-                    <TextField fullWidth label="Prénom" type='text' value={prenom} onChange={(e) => setPrenom(e.target.value)}/>
+                    <TextField fullWidth label="Prénom" type='text' value={prenom} onChange={(e) => setPrenom(e.target.value)} />
                   </Grid>
                   <Grid item xs={6}>
-                    <TextField fullWidth label="Matricule" type='text' value={matricule} onChange={(e) => setMatricule(e.target.value)}/>
+                    <TextField fullWidth label="Matricule" type='text' value={matricule} onChange={(e) => setMatricule(e.target.value)} />
                   </Grid>
                   <Grid item xs={6}>
                     <FormControl fullWidth>
