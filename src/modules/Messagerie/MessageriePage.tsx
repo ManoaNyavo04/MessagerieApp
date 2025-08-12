@@ -20,7 +20,7 @@ const MessageriePage: React.FC<{ token: string }> = ({ token }) => {
   return (
     <Grid container spacing={2}>
       <Grid item xs={4}>
-        <ListeDiscussion token={token} onSelectDiscussion={setCurrentDiscussion} />
+        <ListeDiscussion token={token} onSelectDiscussion={setCurrentDiscussion} currentDiscussion={currentDiscussion} />
       </Grid>
       <Grid item xs={8}>
         <ZoneMessage currentDiscussion={currentDiscussion} currentUser={currentUser} token={token} />

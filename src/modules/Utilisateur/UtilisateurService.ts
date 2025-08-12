@@ -82,3 +82,19 @@ export async function addUtilisateurService(utilisateur: UtilisateurDto, token: 
     throw error.message || "Erreur inconnue";
   }
 }
+
+export async function searchUser(token: string, searchTerm: string) {
+  const response = await fetch(`${ALL_USER_URL}/searchUser?searchTerm=${encodeURIComponent(searchTerm)}`, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de la recherche d'utilisateur");
+  }
+
+  return response.json();
+}
+
