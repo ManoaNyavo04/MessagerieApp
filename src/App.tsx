@@ -26,12 +26,12 @@ function App() {
   const token = useSelector((state: RootState) => state.auth.token);
 
   return (
-    <SignalRProvider>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        {/* Admin Routes */}
-        <Route element={<AdminRoute />}>
+    <SignalRProvider token={token || ''}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          {/* Admin Routes */}
+          <Route element={<AdminRoute />}>
           <Route element={<Dashboard />}>
             <Route path="/admin" element={<AdminHome />} />
             <Route path="/gestion-utilisateur" element={<PageUtilisateur />} />
@@ -44,9 +44,7 @@ function App() {
         <Route element={<PrivateRoute />}>
           <Route element={<Dashboard />}>
             {/* <Route path="/messagerie" element={<Messagerie />} /> */}
-            <Route path="/messagerie" element={<MessageriePage token={token || ''
-
-            } />} />
+            <Route path="/messagerie" element={<MessageriePage token={token || ''} />} />
             
           </Route>
         </Route>
