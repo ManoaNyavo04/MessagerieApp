@@ -61,14 +61,27 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  const addEmoji = (emoji: any) => {
+  /*const addEmoji = (emoji: any) => {
     setMessages((prev) => [...prev, {
       isMine: true,
       texte: emoji.native || emoji?.emoji,
       date: new Date().toISOString()
     }]);
+  };*/
+
+  const addEmoji = (emoji: any) => {
+    setMessage(prev => prev + (emoji.native || emoji?.emoji));
+    setShowEmojiPicker(false); // fermer après sélection
   };
 
+
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission().then((perm) => {
+        console.log("Permission notifications :", perm);
+      });
+    }
+  }, []);
 
 
 
@@ -82,6 +95,18 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
       console.log("📥 Nouveau message reçu via SignalR :", msg);
       // fetchMessages();
       setMessages(prev => [...prev, msg]);
+
+      // ✅ Vérifier si c'est bien pour l'utilisateur connecté
+      const isPrivate = msg.id_destinataire === currentUser.id;
+      const isGroupMsg = msg.id_groupe_discussion && msg.id_expediteur !== currentUser.id;
+
+      if ((isPrivate || isGroupMsg) && Notification.permission === "granted" && document.hidden) {
+        new Notification(`💬 Message de ${msg.expediteur_nom}`, {
+          body: msg.contenu,
+          icon: "/icons/message.png"
+        });
+      }
+
     };
 
 
@@ -90,7 +115,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     return () => {
       connection.off("ReceiveMessage", handler);
     };
-  }, [connection, currentDiscussion]);
+  }, [connection, currentDiscussion, currentUser]);
 
 
   const envoyerMessage = async (e: React.FormEvent) => {
@@ -102,6 +127,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     const idDest = isPrive ? currentDiscussion?.id : null;
     const idGroupe = isGroupe ? currentDiscussion?.id : null;
     const groupName = currentDiscussion?.nom || "";
+    console.log("nom : " + groupName);
 
     // ✅ Affiche directement côté client
     const tempMsg = {

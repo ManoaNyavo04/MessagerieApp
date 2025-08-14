@@ -169,7 +169,7 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
           const discussion = discussions.find(d => d.id === item.id) || {
             id: item.id_utilisateur || item.id,
             nom: item.nom + (item.prenom ? ' ' + item.prenom : ''),
-            type: item.type || 'prive'
+            type: item.type || 'utilisateur'
           };
 
           return (

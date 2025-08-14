@@ -1,5 +1,5 @@
 import { Grid } from '@mui/material';
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import ListeDiscussion from './ListeDiscussion';
 import ZoneMessage from './ZoneMessage';
 import { useSelector } from 'react-redux';
@@ -9,6 +9,15 @@ const MessageriePage: React.FC<{ token: string }> = ({ token }) => {
   const [currentDiscussion, setCurrentDiscussion] = useState<any | null>(null);
 
   const profil = useSelector((state: RootState) => state.auth.profilUtilisateur);
+
+  useEffect(() => {
+    if ("Notification" in window) {
+      if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
+
 
   const currentUser = useMemo(() => ({
     id: profil?.id_utilisateur || profil?.id,

@@ -66,5 +66,23 @@ export async function markMessagesAsRead(token: string, discussionId: number) {
   }
 }
 
+export async function demarrerDiscussion(token: string, userId: number, nom: string) {
+  const response = await fetch(`${USER_DISCUSSION}/demarrerDiscussion`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ id: userId, nom })
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors du démarrage de la discussion");
+  }
+
+  return response.json(); // Retourne l'objet DiscussionModel
+}
+
+
 
 
