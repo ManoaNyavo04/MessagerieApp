@@ -7,6 +7,12 @@
   pointer-events: none;
 }
 
+.myheader{
+  background-color:#1d2f53 !important;
+  color: white !important;
+  font-weight: bold !important;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -35,4 +41,123 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/*bread cumbds */
+
+ul,
+li {
+    list-style: none;
+}
+
+
+
+.breadcrumb {
+    margin: 0px;
+    text-align: center;
+    display: flex;
+    overflow: hidden;
+    counter-reset: flag;
+    flex-wrap: nowrap;
+    transform: translateX(-40px);
+
+}
+
+.breadcrumb__item {
+    outline: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+    height: 55px;
+    padding: 5px 10px 5px 55px;
+    position: relative;
+    background: #1d2f53;
+    color: white;
+    transition: 500ms;
+    text-transform: capitalize;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+
+.breadcrumb__first-item {
+    padding-left: 30px;
+    border-radius: 5px 0 0 5px;
+}
+
+.breadcrumb__title {
+    z-index: 10;
+    color: white;
+}
+
+.breadcrumb__last-item {
+    border-radius: 0 5px 5px 0;
+    padding-right: 25px;
+    background-color: #f2000f;
+}
+
+
+.breadcrumb__last-item:after {
+    display: none;
+}
+
+
+.breadcrumb__item:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -30px;
+    width: 57px;
+    height: 57px;
+    transform: scale(0.707) rotate(45deg);
+    z-index: 1;
+    border-radius: 0 5px 0 50px;
+    background: inherit;
+    box-shadow: 2px -2px 0 2px rgba(241, 223, 223, 0.3);
+}
+
+.breadcrumb__item:hover {
+    color: #000000;
+    background-color: #ec616a;
+}
+
+@media all and (max-width: 992px) {
+    .breadcrumb__item {
+        padding: 5px 5px 5px 45px;
+    }
+
+    .breadcrumb__last-item {
+        padding-right: 20px;
+    }
+
+    .breadcrumb__title {
+        display: none;
+    }
+
+    .breadcrumb__first-item {
+        padding-left: 25px;
+    }
+}
+
+.MuiDataGrid-columnHeaders, .MuiDataGrid-columnHeaders * {
+  background-color:#1d2f53 !important;
+  color: white !important;
+  font-weight: bold !important;
+}
+.MuiDataGrid-columnHeaderTitle {
+  font-weight: bold!important;
+}
+
+
+.tableToolbar, .tableToolbar * {
+  /* color: black !important; */
+  font-weight: bold !important;
+  ;
+}
+
+.titrePage {
+  margin-bottom: -30px;
+  font-family: 'Rubik';
+  font-size: 20px;
 }

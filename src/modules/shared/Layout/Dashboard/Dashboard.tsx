@@ -20,6 +20,8 @@ import { logout } from '../../Slices/authSlice';
 import UserMenu from './UserMenu';
 import AdminMenu from './AdminMenu';
 import BtnLogout from './BtnLogout';
+import BasicBreadcrumbs from './BasicBreadcrumbs';
+import BreadcrumbManager from './BreadcrumbManager';
 
 
 function Copyright(props: any) {
@@ -282,8 +284,10 @@ export default function Dashboard() {
 
           <Box sx={{ mt: 1, mb: 3, p: 1 }}>
             <Box mb={1}>
-             {profilUtilisateur?.id_role}
+             {/* {profilUtilisateur?.id_role} */}
              {/* {profilUtilisateur?.id_utilisateur} */}
+             <BreadcrumbManager />
+             <BasicBreadcrumbs />
             </Box>
             <Outlet />
             <Copyright sx={{ pt: 4 }} />

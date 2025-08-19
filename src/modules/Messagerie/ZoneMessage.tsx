@@ -92,22 +92,28 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     }
 
     const handler = (msg: any) => {
-      console.log("📥 Nouveau message reçu via SignalR :", msg);
-      // fetchMessages();
       setMessages(prev => [...prev, msg]);
 
-      // ✅ Vérifier si c'est bien pour l'utilisateur connecté
       const isPrivate = msg.id_destinataire === currentUser.id;
       const isGroupMsg = msg.id_groupe_discussion && msg.id_expediteur !== currentUser.id;
 
-      if ((isPrivate || isGroupMsg) && Notification.permission === "granted" && document.hidden) {
-        new Notification(`💬 Message de ${msg.expediteur_nom}`, {
+      if (Notification.permission === "granted") {
+        const notif = new Notification(`💬 Message de ${msg.expediteur_nom}`, {
           body: msg.contenu,
-          icon: "/icons/message.png"
+          icon: undefined
         });
-      }
 
+        notif.onclick = () => {
+          window.focus();
+          notif.close();
+        };
+
+        // Optionnel : jouer un son
+        // const audio = new Audio("/sounds/notification.mp3");
+        // audio.play();
+      }
     };
+
 
 
     connection.on("ReceiveMessage", handler);
@@ -148,6 +154,23 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
         tempMsg.contenu,
         groupName
       );
+      if (Notification.permission === "granted") {
+        const notif = new Notification(`💬 ${groupName}`, {
+          body: tempMsg.contenu,
+          icon: "/logo2.png",
+          requireInteraction: true, 
+        });
+
+        notif.onclick = () => {
+          window.focus();
+          notif.close();
+        };
+
+        // Optionnel : jouer un son
+        // const audio = new Audio("/sounds/notification.mp3");
+        // audio.play();
+      }
+
     } catch (err) {
       console.error("❌ Erreur envoi message", err);
     }
@@ -163,6 +186,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   // if (!currentDiscussion) {
   //   return <Typography>Aucune discussion sélectionnée</Typography>;
   // }
+
 
 
 

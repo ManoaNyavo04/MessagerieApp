@@ -4,10 +4,13 @@ import { Button, Grid, IconButton, Menu, MenuItem, Paper } from '@mui/material';
 import GenericList from '../shared/components/GenericList';
 import { FileOpen, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import FormUtilisateur from './FormUtilisateur';
+import { addNavigation } from '../shared/Slices/listeNavigationSlice';
+import { useAppDispatch } from '../shared/hooks/redux-hooks';
 
 const PageUtilisateur = () => {
   const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
   const [openForm, setOpenForm] = useState(false);
+ 
 
   const viewUser = (id: number) => {
     const user = utilisateurs.find(u => u.id === id);
@@ -17,6 +20,7 @@ const PageUtilisateur = () => {
       console.warn("Utilisateur non trouvé pour l'id :", id);
     }
   };
+
 
   useEffect(() => {
     const token = localStorage.getItem("token"); // ou sessionStorage ou context
@@ -135,3 +139,5 @@ const PageUtilisateur = () => {
 }
 
 export default PageUtilisateur
+
+

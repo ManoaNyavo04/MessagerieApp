@@ -4,6 +4,8 @@ import ListeDiscussion from './ListeDiscussion';
 import ZoneMessage from './ZoneMessage';
 import { useSelector } from 'react-redux';
 import { RootState } from '../shared/Store/store';
+import { useAppDispatch } from '../shared/hooks/redux-hooks';
+import { addNavigation } from '../shared/Slices/listeNavigationSlice';
 
 const MessageriePage: React.FC<{ token: string }> = ({ token }) => {
   const [currentDiscussion, setCurrentDiscussion] = useState<any | null>(null);
@@ -11,12 +13,18 @@ const MessageriePage: React.FC<{ token: string }> = ({ token }) => {
   const profil = useSelector((state: RootState) => state.auth.profilUtilisateur);
 
   useEffect(() => {
-    if ("Notification" in window) {
-      if (Notification.permission !== "granted") {
-        Notification.requestPermission();
-      }
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission().then((perm) => {
+        console.log("🔔 Permission notifications :", perm);
+        new Notification("Test de notification", {
+          body: "Ceci est un test",
+          icon: undefined
+        });
+      });
     }
   }, []);
+
+
 
 
   const currentUser = useMemo(() => ({
@@ -28,6 +36,7 @@ const MessageriePage: React.FC<{ token: string }> = ({ token }) => {
 
   return (
     <Grid container spacing={2}>
+
       <Grid item xs={4}>
         <ListeDiscussion token={token} onSelectDiscussion={setCurrentDiscussion} currentDiscussion={currentDiscussion} />
       </Grid>
