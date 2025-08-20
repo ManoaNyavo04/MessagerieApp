@@ -12,7 +12,7 @@ const MessageriePage: React.FC<{ token: string }> = ({ token }) => {
 
   const profil = useSelector((state: RootState) => state.auth.profilUtilisateur);
 
-  useEffect(() => {
+  /*useEffect(() => {
     if ("Notification" in window && Notification.permission !== "granted") {
       Notification.requestPermission().then((perm) => {
         console.log("🔔 Permission notifications :", perm);
@@ -22,7 +22,7 @@ const MessageriePage: React.FC<{ token: string }> = ({ token }) => {
         });
       });
     }
-  }, []);
+  }, []);*/
 
 
 
@@ -32,7 +32,8 @@ const MessageriePage: React.FC<{ token: string }> = ({ token }) => {
     nom: `${profil?.prenom || ''} ${profil?.nom || ''}`
   }), [profil]);
 
-  if (!profil) return <div>Chargement du profil...</div>;
+  if (!profil || !token) return null; // ou un spinner de chargement
+
 
   return (
     <Grid container spacing={2}>

@@ -36,7 +36,7 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
         // 2️⃣ Récupérer le compteur de messages non lus
         const counts = await getUnreadCounts(token);
         console.log("Messages non lus :", counts);
-        setUnreadCounts(counts);
+        setUnreadCounts(counts);  // Commenté pour l'instant
       } catch (err) {
         console.error("Erreur lors de la récupération des discussions ou messages non lus :", err);
       }
@@ -105,8 +105,22 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
       connection.off("MessagesRead", handleMessagesRead);
     };
   }, [connection, currentDiscussion]);*/
-
   useEffect(() => {
+    if (!connection) return;
+
+    const handleUpdateCounts = (counts: { [key: number]: number }) => {
+      setUnreadCounts(counts); // 🔁 Met à jour immédiatement
+    };
+
+    connection.on("UpdateUnreadCounts", handleUpdateCounts);
+
+    return () => {
+      connection.off("UpdateUnreadCounts", handleUpdateCounts);
+    };
+  }, [connection]);
+
+
+  /*useEffect(() => {
     if (!connection) return;
 
     const handler = (msg: any) => {
@@ -123,7 +137,7 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
     return () => {
       connection.off("ReceiveMessage", handler);
     };
-  }, [connection, currentDiscussion]);
+  }, [connection, currentDiscussion]);*/
 
   // --- 4. Quand on clique sur une discussion, on reset le compteur
   const handleSelectDiscussion = async (discussion: Discussion) => {

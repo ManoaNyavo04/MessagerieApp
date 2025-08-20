@@ -57,9 +57,14 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
 
 
-  if (messages.length > 0) {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }
+  useEffect(() => {
+    if (!messagesEndRef.current) return;
+
+    const scrollableDiv = messagesEndRef.current;
+    scrollableDiv.scrollTop = scrollableDiv.scrollHeight; // 🔹 scroll au dernier message
+  }, [messages]);
+
+
 
   /*const addEmoji = (emoji: any) => {
     setMessages((prev) => [...prev, {
@@ -97,7 +102,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
       const isPrivate = msg.id_destinataire === currentUser.id;
       const isGroupMsg = msg.id_groupe_discussion && msg.id_expediteur !== currentUser.id;
 
-      if (Notification.permission === "granted") {
+      /*if (Notification.permission === "granted") {
         const notif = new Notification(`💬 Message de ${msg.expediteur_nom}`, {
           body: msg.contenu,
           icon: undefined
@@ -111,7 +116,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
         // Optionnel : jouer un son
         // const audio = new Audio("/sounds/notification.mp3");
         // audio.play();
-      }
+      }*/
     };
 
 
@@ -138,6 +143,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     // ✅ Affiche directement côté client
     const tempMsg = {
       id_expediteur: currentUser.id,
+      expediteur_nom: currentUser.nom,
       contenu: message,
       date_envoie: new Date().toISOString()
     };
@@ -155,10 +161,10 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
         groupName
       );
       if (Notification.permission === "granted") {
-        const notif = new Notification(`💬 ${groupName}`, {
+        const notif = new Notification(`💬 ${tempMsg.expediteur_nom}`, {
           body: tempMsg.contenu,
           icon: "/logo2.png",
-          requireInteraction: true, 
+          requireInteraction: true,
         });
 
         notif.onclick = () => {
@@ -178,9 +184,9 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
 
 
-  if (!token || !currentUser?.id) {
-    return <Typography>Chargement utilisateur...</Typography>;
-  }
+  // if (!token || !currentUser?.id) {
+  //   return <Typography>Chargement utilisateur...</Typography>;
+  // }
 
 
   // if (!currentDiscussion) {
@@ -220,10 +226,11 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
           flexDirection: 'column',
           gap: 1.5,
         }}
+        ref={messagesEndRef} // 🔹 déplacer le ref ici
       >
+        
         {messages.map((msg, idx) => {
-          const isMine = msg.id_expediteur === currentUser.id; // ✅ dynamique ici
-
+          const isMine = msg.id_expediteur === currentUser.id;
           return (
             <Box key={idx} sx={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
               <Box
@@ -259,9 +266,8 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
             </Box>
           );
         })}
-
       </Box>
-      <div ref={messagesEndRef} />
+
 
 
 
