@@ -97,7 +97,12 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     }
 
     const handler = (msg: any) => {
-      setMessages(prev => [...prev, msg]);
+      setMessages(prev => {
+        // éviter doublons si message déjà présent
+        if (prev.some(m => m.id_message === msg.id_message)) return prev;
+        return [...prev, msg];
+      });
+
 
       const isPrivate = msg.id_destinataire === currentUser.id;
       const isGroupMsg = msg.id_groupe_discussion && msg.id_expediteur !== currentUser.id;
@@ -228,7 +233,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
         }}
         ref={messagesEndRef} // 🔹 déplacer le ref ici
       >
-        
+
         {messages.map((msg, idx) => {
           const isMine = msg.id_expediteur === currentUser.id;
           return (
