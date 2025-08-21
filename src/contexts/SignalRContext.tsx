@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
+import { baseUrl } from "../URL/Url";
 
 const SignalRContext = createContext<HubConnection | null>(null);
 
@@ -17,7 +18,7 @@ export const SignalRProvider: React.FC<SignalRProviderProps> = ({ children, toke
     if (!token) return; // ne pas connecter si pas de token
 
     const conn = new HubConnectionBuilder()
-      .withUrl("http://localhost:5032/chathub", {
+      .withUrl(`${baseUrl}/chathub`, {
         accessTokenFactory: () => token // 🔹 on fournit le token
       })
       .withAutomaticReconnect() // 🔹 reconnexion automatique

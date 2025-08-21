@@ -1,4 +1,6 @@
-export const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:5032";
+export const PROD = true;
+
+export const baseUrl = PROD ? "http://10.5.100.7:5032" : "http://localhost:5032";
 
 export const LOGIN_URL = `${baseUrl}/api/Utilisateur`;
 export const ALL_USER_URL = `${baseUrl}/api/Utilisateur`;
