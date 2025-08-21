@@ -31,8 +31,9 @@ export const SignalRProvider: React.FC<SignalRProviderProps> = ({ children, toke
 
 
     return () => {
-      conn.stop();
+      conn.stop().catch(err => console.error("Erreur arrêt connexion SignalR:", err));
     };
+
   }, [token]); // 🔹 recrée connexion si le token change
 
   return (
