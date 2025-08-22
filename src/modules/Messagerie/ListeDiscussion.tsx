@@ -4,6 +4,10 @@ import { Box, IconButton, List, ListItem, ListItemButton, ListItemText, Paper, T
 import SearchIcon from '@mui/icons-material/Search';
 import { searchUser } from '../Utilisateur/UtilisateurService';
 import { useSignalR } from '../../contexts/SignalRContext';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
+import Tooltip from '@mui/material/Tooltip';
+import CreerGroupeModal from '../Groupe/CreerGroupeModal';
+
 
 interface Discussion {
   id: number;
@@ -22,6 +26,8 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [unreadCounts, setUnreadCounts] = useState<{ [key: number]: number }>({});
+  const [openModal, setOpenModal] = useState(false);
+
 
   const connection = useSignalR();
 
@@ -64,47 +70,7 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
     fetchSearchResults();
   }, [searchTerm, token]);
 
-  // --- 3. Mise à jour en temps réel via SignalR
-  /*useEffect(() => {
-    if (!connection) return;
 
-    connection.on("UpdateUnreadCounts", (counts: { [key: number]: number }) => {
-      setUnreadCounts(counts);
-    });
-
-    return () => {
-      connection.off("UpdateUnreadCounts");
-    };
-  }, [connection]);*/
-
-  /*useEffect(() => {
-    if (!connection) return;
-
-    const handleNewMessage = (msg: any) => {
-      if (msg.id_discussion !== currentDiscussion?.id) {
-        setUnreadCounts(prev => ({
-          ...prev,
-          [msg.id_discussion]: (prev[msg.id_discussion] || 0) + 1
-        }));
-      }
-    };
-
-    const handleMessagesRead = (data: any) => {
-      // data: { discussionId, userId }
-      setUnreadCounts(prev => ({
-        ...prev,
-        [data.discussionId]: 0
-      }));
-    };
-
-    connection.on("ReceiveMessage", handleNewMessage);
-    connection.on("MessagesRead", handleMessagesRead);
-
-    return () => {
-      connection.off("ReceiveMessage", handleNewMessage);
-      connection.off("MessagesRead", handleMessagesRead);
-    };
-  }, [connection, currentDiscussion]);*/
   useEffect(() => {
     if (!connection) return;
 
@@ -119,25 +85,6 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
     };
   }, [connection]);
 
-
-  /*useEffect(() => {
-    if (!connection) return;
-
-    const handler = (msg: any) => {
-      // Si le message n'est pas dans la discussion courante, incrémente le compteur
-      if (msg.id_discussion !== currentDiscussion?.id) {
-        setUnreadCounts(prev => ({
-          ...prev,
-          [msg.id_discussion]: (prev[msg.id_discussion] || 0) + 1
-        }));
-      }
-    };
-
-    connection.on("ReceiveMessage", handler);
-    return () => {
-      connection.off("ReceiveMessage", handler);
-    };
-  }, [connection, currentDiscussion]);*/
 
   // --- 4. Quand on clique sur une discussion, on reset le compteur
   const handleSelectDiscussion = async (discussion: Discussion) => {
@@ -160,7 +107,15 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
 
   return (
     <Paper sx={{ p: 2, height: '80vh', overflowY: 'auto' }}>
-      <Typography variant="h6" gutterBottom>Mes Discussions</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6" gutterBottom>Mes Discussions</Typography>
+        <Tooltip title="Créer une discussion de groupe">
+          <IconButton onClick={() => setOpenModal(true)}>
+            <GroupAddIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
 
       {/* Barre de recherche */}
       <Box sx={{ display: "flex", mb: 2 }}>
@@ -213,6 +168,17 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
           );
         })}
       </List>
+
+      <CreerGroupeModal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        token={token}
+        onGroupCreated={async () => {
+          const updated = await getMesDiscussions(token);
+          setDiscussions(updated);
+        }}
+      />
+
     </Paper>
   );
 };
