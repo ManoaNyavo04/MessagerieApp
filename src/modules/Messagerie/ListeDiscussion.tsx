@@ -134,15 +134,34 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
 
       {/* Liste des discussions */}
       <List>
-        {(searchResults.length > 0 ? searchResults : discussions).map(item => {
-          const discussion = discussions.find(d => d.id === item.id) || {
-            id: item.id_utilisateur || item.id,
-            nom: item.nom + (item.prenom ? ' ' + item.prenom : ''),
-            type: item.type || 'prive'
+        {/* Résultats de recherche */}
+        {searchResults.length > 0 && searchResults.map((user) => {
+          const id = `user-${user.id_utilisateur}`;
+          const discussion: Discussion = {
+            id: user.id_utilisateur,
+            nom: user.nom + (user.prenom ? ' ' + user.prenom : ''),
+            type: 'prive'
           };
 
           return (
-            <ListItem key={discussion.id} disablePadding>
+            <ListItem key={id} disablePadding>
+              <ListItemButton onClick={() => handleSelectDiscussion(discussion)}>
+                <ListItemText
+                  primaryTypographyProps={{ sx: { color: "black" } }}
+                  primary={discussion.nom}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+
+        {/* Discussions normales */}
+        {searchResults.length === 0 && discussions.map((discussion) => {
+          const id = `discussion-${discussion.id}`;
+          
+
+          return (
+            <ListItem key={id} disablePadding>
               <ListItemButton onClick={() => handleSelectDiscussion(discussion)}>
                 <ListItemText
                   primaryTypographyProps={{ sx: { color: "black" } }}
@@ -168,6 +187,8 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
           );
         })}
       </List>
+
+
 
       <CreerGroupeModal
         open={openModal}

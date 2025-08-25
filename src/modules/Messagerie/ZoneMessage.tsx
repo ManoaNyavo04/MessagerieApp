@@ -13,6 +13,11 @@ import {
 import { getMessages } from './MesDiscussion';
 import { useSignalR } from '../../contexts/SignalRContext';
 
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+
+
 interface Discussion {
   id: number;
   nom: string;
@@ -31,6 +36,16 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(anchorEl);
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
 
 
 
@@ -211,9 +226,42 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
       // backgroundColor: '#f0f2f5', // clair, comme Messenger
     }}
     >
-      <Typography variant="h6">
-        {currentDiscussion ? `Discussion : ${currentDiscussion.nom}` : 'Aucune discussion sélectionnée'}
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6">
+          {currentDiscussion ? `Discussion : ${currentDiscussion.nom}` : 'Aucune discussion sélectionnée'}
+        </Typography>
+
+        {currentDiscussion?.type === 'groupe' && (
+          <>
+            <IconButton onClick={handleMenuOpen}>
+              <MoreVertIcon />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={menuOpen}
+              onClose={handleMenuClose}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+              <MenuItem onClick={() => {
+                handleMenuClose();
+                // 👉 Action pour "Ajouter un membre"
+                console.log("Ajouter un membre");
+              }}>
+                Ajouter un membre
+              </MenuItem>
+              <MenuItem onClick={() => {
+                handleMenuClose();
+                // 👉 Action pour "Modifier le nom du groupe"
+                console.log("Modifier le nom du groupe");
+              }}>
+                Modifier le nom du groupe
+              </MenuItem>
+            </Menu>
+          </>
+        )}
+      </Box>
+
 
 
 
