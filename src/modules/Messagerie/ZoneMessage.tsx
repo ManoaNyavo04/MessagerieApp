@@ -16,6 +16,7 @@ import { useSignalR } from '../../contexts/SignalRContext';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import ListeMembre from '../Groupe/ListeMembre';
 
 
 interface Discussion {
@@ -37,6 +38,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const [openModal, setOpenModal] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -44,6 +46,15 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   };
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleOpenModal = () => {
+    handleMenuClose();
+    setOpenModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
   };
 
 
@@ -238,26 +249,21 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
             </IconButton>
             <Menu
               anchorEl={anchorEl}
-              open={menuOpen}
+              open={Boolean(anchorEl)}
               onClose={handleMenuClose}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
               transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-              <MenuItem onClick={() => {
-                handleMenuClose();
-                // 👉 Action pour "Ajouter un membre"
-                console.log("Ajouter un membre");
-              }}>
-                Ajouter un membre
-              </MenuItem>
-              <MenuItem onClick={() => {
-                handleMenuClose();
-                // 👉 Action pour "Modifier le nom du groupe"
-                console.log("Modifier le nom du groupe");
-              }}>
-                Modifier le nom du groupe
-              </MenuItem>
+              <MenuItem onClick={handleOpenModal}>Membres</MenuItem>
             </Menu>
+
+            {/* Modal des membres */}
+            <ListeMembre
+              open={openModal}
+              handleClose={handleCloseModal}
+              idGroupe={currentDiscussion.id}
+              token={token}
+            />
           </>
         )}
       </Box>
