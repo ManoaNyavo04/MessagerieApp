@@ -17,6 +17,8 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListeMembre from '../Groupe/ListeMembre';
+import SendIcon from '@mui/icons-material/Send';
+
 
 
 interface Discussion {
@@ -66,6 +68,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     }
     try {
       const data = await getMessages(token, currentDiscussion.id, currentDiscussion.type);
+      console.log("📨 Messages reçus :", data);
       setMessages(data);
     } catch (err) {
       console.error("❌ Erreur chargement messages :", err);
@@ -118,8 +121,16 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
   const connection = useSignalR();
   useEffect(() => {
-    if (!connection || connection.state !== HubConnectionState.Connected) {
+    if (!connection || connection.state !== HubConnectionState.Connected || !currentDiscussion) {
       return;
+    }
+
+    if (currentDiscussion.type === 'groupe') {
+      const groupName = currentDiscussion.nom;
+      console.log(`✅ Rejoint le groupe : ${groupName}`);
+      connection.invoke("JoinGroup", groupName)
+        .then(() => console.log(`✅ Rejoint le groupe : ${groupName}`))
+        .catch(err => console.error("❌ Erreur joinGroup :", err));
     }
 
     const handler = (msg: any) => {
@@ -132,22 +143,6 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
       const isPrivate = msg.id_destinataire === currentUser.id;
       const isGroupMsg = msg.id_groupe_discussion && msg.id_expediteur !== currentUser.id;
-
-      /*if (Notification.permission === "granted") {
-        const notif = new Notification(`💬 Message de ${msg.expediteur_nom}`, {
-          body: msg.contenu,
-          icon: undefined
-        });
-
-        notif.onclick = () => {
-          window.focus();
-          notif.close();
-        };
-
-        // Optionnel : jouer un son
-        // const audio = new Audio("/sounds/notification.mp3");
-        // audio.play();
-      }*/
     };
 
 
@@ -178,7 +173,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
       contenu: message,
       date_envoie: new Date().toISOString()
     };
-    setMessages(prev => [...prev, tempMsg]);
+    // setMessages(prev => [...prev, tempMsg]);
 
     setMessage("");
 
@@ -212,19 +207,6 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
       console.error("❌ Erreur envoi message", err);
     }
   };
-
-
-
-  // if (!token || !currentUser?.id) {
-  //   return <Typography>Chargement utilisateur...</Typography>;
-  // }
-
-
-  // if (!currentDiscussion) {
-  //   return <Typography>Aucune discussion sélectionnée</Typography>;
-  // }
-
-
 
 
 
@@ -331,39 +313,27 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
 
       {/* Zone de saisie */}
-      <Box
-        component="form"
-        sx={{ display: 'flex', gap: 1 }}
-        onSubmit={envoyerMessage}
-      >
+      <Box component="form" sx={{ display: 'flex', gap: 1 }} onSubmit={envoyerMessage}>
         <IconButton onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
           <InsertEmoticonIcon />
         </IconButton>
-
         {showEmojiPicker && (
           <Box sx={{ position: 'absolute', bottom: '100px', zIndex: 10 }}>
             <Picker data={data} onEmojiSelect={addEmoji} theme="light" />
           </Box>
         )}
-
         <input
           type="text"
           placeholder="Écrire un message..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          style={{
-            flex: 1,
-            padding: 8,
-            borderRadius: 4,
-            border: '1px solid #ccc',
-          }}
+          style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #ccc' }}
         />
-
-
-        <button type="submit" style={{ padding: '8px 16px' }}>
-          Envoyer
-        </button>
+        <IconButton type="submit" color="primary">
+          <SendIcon />
+        </IconButton>
       </Box>
+
     </Paper>
   );
 

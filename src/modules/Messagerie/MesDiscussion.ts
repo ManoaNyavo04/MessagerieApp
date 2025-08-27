@@ -23,9 +23,10 @@ export async function getMesDiscussions(token: string): Promise<any[]> {
 }
 
 export async function getMessages(token: string, targetId: number, type: string) {
-   const res = await fetch(`${USER_DISCUSSION}/messages?targetId=${targetId}&type=${type}`, {
+  const res = await fetch(`${USER_DISCUSSION}/messages?targetId=${targetId}&type=${type}`, {
+
+    method: 'GET',
     headers: {
-      method: 'GET',
       Authorization: `Bearer ${token}`, // les backticks manquaient
     },
   });
@@ -52,8 +53,8 @@ export async function getUnreadCounts(token: string) {
   return await res.json(); // retourne un dictionnaire { discussionId: count }
 }
 
-export async function markMessagesAsRead(token: string, discussionId: number) {
-  const res = await fetch(`${USER_DISCUSSION}/lireMessage?discussionId=${discussionId}`, {
+export async function markMessagesAsRead(token: string, discussionId: number, discussionType: string) {
+  const res = await fetch(`${USER_DISCUSSION}/lireMessage?discussionId=${discussionId}&type=${discussionType}`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,

@@ -129,7 +129,7 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
   const handleSelectDiscussion = async (discussion: Discussion) => {
     try {
       // 1️⃣ Marquer les messages comme lus sur le backend
-      await markMessagesAsRead(token, discussion.id);
+      await markMessagesAsRead(token, discussion.id, discussion.type);
 
       // 2️⃣ Réinitialiser le compteur local
       setUnreadCounts(prev => ({
