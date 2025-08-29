@@ -25,11 +25,13 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [unreadCounts, setUnreadCounts] = useState<{ [key: number]: number }>({});
+  const [unreadCounts, setUnreadCounts] = useState<{ [key: string]: number }>({});
   const [openModal, setOpenModal] = useState(false);
 
 
   const connection = useSignalR();
+
+  const getKey = (id: number, type: string) => `${type}-${id}`;
 
   // --- 1. Charger les discussions et les messages non lus au départ
   useEffect(() => {
@@ -39,10 +41,15 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
         const data = await getMesDiscussions(token);
         setDiscussions(data);
 
-        // 2️⃣ Récupérer le compteur de messages non lus
         const counts = await getUnreadCounts(token);
-        console.log("Messages non lus :", counts);
-        setUnreadCounts(counts);  // Commenté pour l'instant
+
+        // Remplir le dictionnaire avec clé `${type}-${id}`
+        const formattedCounts: { [key: string]: number } = {};
+        counts.forEach((item: { id: number; type: string; count: number }) => {
+          formattedCounts[`${item.type}-${item.id}`] = item.count;
+        });
+
+        setUnreadCounts(formattedCounts);
       } catch (err) {
         console.error("Erreur lors de la récupération des discussions ou messages non lus :", err);
       }
@@ -74,9 +81,15 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
   useEffect(() => {
     if (!connection) return;
 
-    const handleUpdateCounts = (counts: { [key: number]: number }) => {
-      setUnreadCounts(counts); // 🔁 Met à jour immédiatement
+    const handleUpdateCounts = (counts: { id: number, type: string, count: number }[]) => {
+      const newCounts: { [key: string]: number } = {};
+      counts.forEach(({ id, type, count }) => {
+        newCounts[`${type}-${id}`] = count;
+      });
+
+      setUnreadCounts(newCounts);
     };
+
 
     connection.on("UpdateUnreadCounts", handleUpdateCounts);
 
@@ -91,13 +104,14 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
     try {
       // 1️⃣ Marquer les messages comme lus sur le backend
       await markMessagesAsRead(token, discussion.id, discussion.type);
+      console.log("Messages marqués comme lus pour", discussion);
 
       // 2️⃣ Réinitialiser le compteur local
       setUnreadCounts(prev => ({
         ...prev,
-        [discussion.id]: 0
-        
+        [`${discussion.type}-${discussion.id}`]: 0
       }));
+
 
       // 3️⃣ Déclencher la sélection dans le parent
       onSelectDiscussion(discussion);
@@ -159,7 +173,7 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
         {/* Discussions normales */}
         {searchResults.length === 0 && discussions.map((discussion) => {
           const id = `discussion-${discussion.id}`;
-          
+
 
           return (
             <ListItem key={id} disablePadding>
@@ -168,7 +182,7 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
                   primaryTypographyProps={{ sx: { color: "black" } }}
                   primary={discussion.nom}
                 />
-                {unreadCounts[discussion.id] > 0 && (
+                {unreadCounts[`${discussion.type}-${discussion.id}`] > 0 && (
                   <Box
                     sx={{
                       backgroundColor: 'red',
@@ -180,10 +194,12 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
                       textAlign: 'center'
                     }}
                   >
-                    {unreadCounts[discussion.id]}
+                    {unreadCounts[`${discussion.type}-${discussion.id}`]}
                   </Box>
                 )}
+
               </ListItemButton>
+              
             </ListItem>
           );
         })}

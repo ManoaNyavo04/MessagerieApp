@@ -276,37 +276,61 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
             <Box key={idx} sx={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
               <Box
                 sx={{
-                  alignSelf: isMine ? 'flex-end' : 'flex-start',
-                  backgroundColor: isMine ? '#0B93F6' : '#E5E5EA',
-                  color: isMine ? 'white' : 'black',
-                  px: 2,
-                  py: 1.5,
-                  borderRadius: 4,
-                  borderTopLeftRadius: isMine ? 12 : 0,
-                  borderTopRightRadius: isMine ? 0 : 12,
-                  borderBottomLeftRadius: 12,
-                  borderBottomRightRadius: 12,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: isMine ? 'flex-end' : 'flex-start',
                   maxWidth: '70%',
-                  wordBreak: 'break-word',
-                  boxShadow: 2,
                 }}
               >
-                <Typography variant="body2" sx={{ fontSize: '0.95rem' }}>
-                  {msg.contenu || msg.texte}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ fontSize: '0.7rem', opacity: 0.6, textAlign: 'right', mt: 0.5 }}
+                {/* ✅ Nom de l'expéditeur visible uniquement pour les discussions de groupe */}
+                {currentDiscussion?.type === 'groupe' && !isMine && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontSize: '0.75rem',
+                      color: 'text.secondary',
+                      mb: 0.5,
+                      ml: 1,
+                    }}
+                  >
+                    {msg.nom_expediteur}
+                  </Typography>
+                )}
+
+                <Box
+                  sx={{
+                    backgroundColor: isMine ? '#0B93F6' : '#E5E5EA',
+                    color: isMine ? 'white' : 'black',
+                    px: 2,
+                    py: 1.5,
+                    borderRadius: 4,
+                    borderTopLeftRadius: isMine ? 12 : 0,
+                    borderTopRightRadius: isMine ? 0 : 12,
+                    borderBottomLeftRadius: 12,
+                    borderBottomRightRadius: 12,
+                    wordBreak: 'break-word',
+                    boxShadow: 2,
+                    width: '100%',
+                  }}
                 >
-                  {new Date(msg.date_envoie || msg.date).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </Typography>
+                  <Typography variant="body2" sx={{ fontSize: '0.95rem' }}>
+                    {msg.contenu || msg.texte}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontSize: '0.7rem', opacity: 0.6, textAlign: 'right', mt: 0.5 }}
+                  >
+                    {new Date(msg.date_envoie || msg.date).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </Typography>
+                </Box>
               </Box>
             </Box>
           );
         })}
+
       </Box>
 
 
