@@ -106,6 +106,16 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
       await markMessagesAsRead(token, discussion.id, discussion.type);
       console.log("Messages marqués comme lus pour", discussion);
 
+      const counts = await getUnreadCounts(token);
+
+        // Remplir le dictionnaire avec clé `${type}-${id}`
+        const formattedCounts: { [key: string]: number } = {};
+        counts.forEach((item: { id: number; type: string; count: number }) => {
+          formattedCounts[`${item.type}-${item.id}`] = item.count;
+        });
+
+        // setUnreadCounts(formattedCounts);
+
       // 2️⃣ Réinitialiser le compteur local
       setUnreadCounts(prev => ({
         ...prev,
@@ -199,7 +209,7 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
                 )}
 
               </ListItemButton>
-              
+
             </ListItem>
           );
         })}

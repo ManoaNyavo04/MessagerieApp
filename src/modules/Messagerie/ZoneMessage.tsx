@@ -325,6 +325,21 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                       minute: '2-digit',
                     })}
                   </Typography>
+
+                  {isMine && msg.est_lu && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: '0.75rem',
+                        color: 'text.secondary',
+                        mb: 0.5,
+                        ml: 1,
+                      }}
+                    >
+                      Vu
+                    </Typography>
+                  )}
+
                 </Box>
               </Box>
             </Box>
