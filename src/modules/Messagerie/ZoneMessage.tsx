@@ -1,5 +1,5 @@
 import { Box, IconButton, Paper, Typography } from '@mui/material';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
@@ -60,6 +60,12 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   };
 
 
+  const lastMyMessageId = useMemo(() => {
+    return messages
+      .filter(m => m.id_expediteur === currentUser.id)
+      .map(m => m.id_message)
+      .pop();
+  }, [messages, currentUser.id]);
 
 
   const fetchMessages = async () => {
@@ -134,6 +140,44 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     }
 
     const handler = (msg: any) => {
+      // Ne pas afficher deux fois
+      setMessages(prev => {
+        if (prev.some(m => m.id_message === msg.id_message)) return prev;
+        return [...prev, msg];
+      });
+
+      // Affiche la notification si le message est reçu par CE client
+      const isForThisUser = msg.id_destinataire === currentUser.id ||
+        (msg.liste_destinataires?.includes?.(currentUser.id));
+      const isGroupMsg = msg.id_groupe_discussion && msg.id_expediteur !== currentUser.id;
+
+
+      const isFromSomeoneElse = msg.id_expediteur !== currentUser.id;
+
+      console.log("🔔 Handler déclenché");
+      console.log("msg.id_destinataire", msg.id_destinataire);
+      console.log("currentUser.id", currentUser.id);
+      console.log("liste_destinataires", msg.liste_destinataires);
+      console.log("isForThisUser:", isForThisUser);
+      console.log("isGroupMsg:", isGroupMsg);
+      console.log("isFromSomeoneElse:", isFromSomeoneElse);
+
+      if (isForThisUser && isFromSomeoneElse && Notification.permission === "granted") {
+        const notif = new Notification(`💬 ${msg.nom_expediteur}`, {
+          body: msg.contenu,
+          icon: "/logo2.png",
+          requireInteraction: true,
+        });
+
+        notif.onclick = () => {
+          window.focus();
+          notif.close();
+        };
+      }
+    };
+
+
+    /*const handler = (msg: any) => {
       setMessages(prev => {
         // éviter doublons si message déjà présent
         if (prev.some(m => m.id_message === msg.id_message)) return prev;
@@ -141,9 +185,11 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
       });
 
 
+
+
       const isPrivate = msg.id_destinataire === currentUser.id;
       const isGroupMsg = msg.id_groupe_discussion && msg.id_expediteur !== currentUser.id;
-    };
+    };*/
 
 
 
@@ -186,7 +232,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
         tempMsg.contenu,
         groupName
       );
-      if (Notification.permission === "granted") {
+      /*if (Notification.permission === "granted") {
         const notif = new Notification(`💬 ${tempMsg.expediteur_nom}`, {
           body: tempMsg.contenu,
           icon: "/logo2.png",
@@ -201,7 +247,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
         // Optionnel : jouer un son
         // const audio = new Audio("/sounds/notification.mp3");
         // audio.play();
-      }
+      }*/
 
     } catch (err) {
       console.error("❌ Erreur envoi message", err);
@@ -270,8 +316,16 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
         ref={messagesEndRef} // 🔹 déplacer le ref ici
       >
 
+
         {messages.map((msg, idx) => {
           const isMine = msg.id_expediteur === currentUser.id;
+          const isLastMine = isMine && msg.id_message === lastMyMessageId;
+
+          // const isLastMine = isMine && msg.id_message === messages
+          //   .filter(m => m.id_expediteur === currentUser.id)
+          //   .map(m => m.id_message)
+          //   .pop();
+
           return (
             <Box key={idx} sx={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
               <Box
@@ -282,24 +336,16 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                   maxWidth: '70%',
                 }}
               >
-                {/* ✅ Nom de l'expéditeur visible uniquement pour les discussions de groupe */}
+                {/* Nom de l'expéditeur pour groupe */}
                 {currentDiscussion?.type === 'groupe' && !isMine && (
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontSize: '0.75rem',
-                      color: 'text.secondary',
-                      mb: 0.5,
-                      ml: 1,
-                    }}
-                  >
+                  <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5, ml: 1 }}>
                     {msg.nom_expediteur}
                   </Typography>
                 )}
 
                 <Box
                   sx={{
-                    backgroundColor: isMine ? '#0B93F6' : '#E5E5EA',
+                    backgroundColor: isMine ? '#1d2f54e8' : '#E5E5EA',
                     color: isMine ? 'white' : 'black',
                     px: 2,
                     py: 1.5,
@@ -326,25 +372,25 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                     })}
                   </Typography>
 
-                  {isMine && msg.est_lu && (
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontSize: '0.75rem',
-                        color: 'text.secondary',
-                        mb: 0.5,
-                        ml: 1,
-                      }}
-                    >
-                      Vu
-                    </Typography>
-                  )}
 
                 </Box>
+                {/* 🔹 VU conditionnel */}
+                {isLastMine && msg.est_lu && currentDiscussion?.type === 'prive' && (
+                  <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5, ml: 1 }}>
+                    Vu
+                  </Typography>
+                )}
+
+                {isLastMine && msg.est_lu && currentDiscussion?.type === 'groupe' && (
+                  <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5, ml: 1 }}>
+                    Vu par {msg.liste_utilisateur_vu?.join(", ")}
+                  </Typography>
+                )}
               </Box>
             </Box>
           );
         })}
+
 
       </Box>
 

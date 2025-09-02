@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { getMesDiscussions, getUnreadCounts, markMessagesAsRead } from './MesDiscussion';
+import { getMesDiscussions, getUnreadCounts, markMessagesAsRead, searchUserGroup } from './MesDiscussion';
 import { Box, IconButton, List, ListItem, ListItemButton, ListItemText, Paper, TextField, Typography } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { searchUser } from '../Utilisateur/UtilisateurService';
@@ -7,6 +7,7 @@ import { useSignalR } from '../../contexts/SignalRContext';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import Tooltip from '@mui/material/Tooltip';
 import CreerGroupeModal from '../Groupe/CreerGroupeModal';
+import PersonIcon from '@mui/icons-material/Person';
 
 
 interface Discussion {
@@ -67,7 +68,8 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
 
     async function fetchSearchResults() {
       try {
-        const results = await searchUser(token, searchTerm);
+        // const results = await searchUser(token, searchTerm);
+        const results = await searchUserGroup(token, searchTerm);
         setSearchResults(results);
       } catch (err) {
         console.error("Erreur recherche utilisateur :", err);
@@ -108,13 +110,13 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
 
       const counts = await getUnreadCounts(token);
 
-        // Remplir le dictionnaire avec clé `${type}-${id}`
-        const formattedCounts: { [key: string]: number } = {};
-        counts.forEach((item: { id: number; type: string; count: number }) => {
-          formattedCounts[`${item.type}-${item.id}`] = item.count;
-        });
+      // Remplir le dictionnaire avec clé `${type}-${id}`
+      const formattedCounts: { [key: string]: number } = {};
+      counts.forEach((item: { id: number; type: string; count: number }) => {
+        formattedCounts[`${item.type}-${item.id}`] = item.count;
+      });
 
-        // setUnreadCounts(formattedCounts);
+      // setUnreadCounts(formattedCounts);
 
       // 2️⃣ Réinitialiser le compteur local
       setUnreadCounts(prev => ({
@@ -160,13 +162,14 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
       {/* Liste des discussions */}
       <List>
         {/* Résultats de recherche */}
-        {searchResults.length > 0 && searchResults.map((user) => {
-          const id = `user-${user.id_utilisateur}`;
+        {searchResults.length > 0 && searchResults.map((result) => {
+          const id = `${result.type}-${result.id}`;
           const discussion: Discussion = {
-            id: user.id_utilisateur,
-            nom: user.nom + (user.prenom ? ' ' + user.prenom : ''),
-            type: 'prive'
+            id: result.id,
+            nom: result.nom,
+            type: result.type === 'utilisateur' ? 'prive' : 'groupe'
           };
+
 
           return (
             <ListItem key={id} disablePadding>
@@ -183,15 +186,31 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
         {/* Discussions normales */}
         {searchResults.length === 0 && discussions.map((discussion) => {
           const id = `discussion-${discussion.id}`;
-
+          const unread = unreadCounts[`${discussion.type}-${discussion.id}`] || 0;
 
           return (
             <ListItem key={id} disablePadding>
               <ListItemButton onClick={() => handleSelectDiscussion(discussion)}>
                 <ListItemText
                   primaryTypographyProps={{ sx: { color: "black" } }}
-                  primary={discussion.nom}
+                  primary={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {discussion.type === 'groupe' ? (
+                        <GroupAddIcon fontSize="small" sx={{ color: 'gray' }} />
+                      ) : (
+                        <PersonIcon fontSize="small" sx={{ color: 'gray' }} />
+                      )}
+                      <Typography
+                        variant="body1"
+                        sx={{ fontWeight: unread > 0 ? 'bold' : 'normal' }}
+                      >
+                        {discussion.nom}
+                      </Typography>
+
+                    </Box>
+                  }
                 />
+
                 {unreadCounts[`${discussion.type}-${discussion.id}`] > 0 && (
                   <Box
                     sx={{
@@ -201,7 +220,8 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
                       px: 1,
                       fontSize: '0.8rem',
                       minWidth: '20px',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      // fontWeight: 'bold',
                     }}
                   >
                     {unreadCounts[`${discussion.type}-${discussion.id}`]}

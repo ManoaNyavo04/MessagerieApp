@@ -1,4 +1,4 @@
-import { USER_DISCUSSION } from "../../URL/Url";
+import { ALL_USER_URL, USER_DISCUSSION } from "../../URL/Url";
 
 export async function getMesDiscussions(token: string): Promise<any[]> {
   try {
@@ -83,6 +83,25 @@ export async function demarrerDiscussion(token: string, userId: number, nom: str
 
   return response.json(); // Retourne l'objet DiscussionModel
 }
+
+export async function searchUserGroup(token: string, searchTerm: string) {
+  const response = await fetch(`${USER_DISCUSSION}/searchUserGroup?searchTerm=${encodeURIComponent(searchTerm)}`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text(); // 🔹 lire le vrai message d’erreur
+    console.error("❌ Erreur brute backend :", errorText); // debug complet
+    throw new Error(`Erreur HTTP ${response.status} : ${errorText}`);
+  }
+
+  return response.json();
+}
+
 
 
 
