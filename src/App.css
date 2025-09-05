@@ -161,3 +161,14 @@ li {
   font-family: 'Rubik';
   font-size: 20px;
 }
+
+/* 🧼 Rend les émojis plus arrondis */
+.emoji-mart .emoji-mart-emoji {
+  border-radius: 8px !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.emoji-mart .emoji-mart-emoji:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.1);
+}
