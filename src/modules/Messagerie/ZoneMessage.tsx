@@ -18,6 +18,9 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListeMembre from '../Groupe/ListeMembre';
 import SendIcon from '@mui/icons-material/Send';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import { baseUrl } from '../../URL/Url';
+import { envoyerPieceJointe } from '../PieceJoint/PieceJointService';
 
 
 
@@ -75,6 +78,11 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     try {
       const data = await getMessages(token, currentDiscussion.id, currentDiscussion.type);
       console.log("📨 Messages reçus :", data);
+      data.map((msg: any) => ({
+  ...msg,
+  piece_jointe: msg.chemin
+}))
+
       setMessages(data);
     } catch (err) {
       console.error("❌ Erreur chargement messages :", err);
@@ -238,13 +246,13 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     };
 
 
-const markAsRead = async () => {
-    if (currentDiscussion) {
-      await markMessagesAsRead(token, currentDiscussion.id, currentDiscussion.type);
-    }
-  };
+    const markAsRead = async () => {
+      if (currentDiscussion) {
+        await markMessagesAsRead(token, currentDiscussion.id, currentDiscussion.type);
+      }
+    };
 
-  markAsRead();
+    markAsRead();
 
     connection.on("ReceiveMessage", handler);
     connection.on("MessagesRead", handler);
@@ -308,6 +316,51 @@ const markAsRead = async () => {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !connection) return;
+
+    const isPrive = currentDiscussion?.type === 'prive';
+    const isGroupe = currentDiscussion?.type === 'groupe';
+    const idDest = isPrive ? currentDiscussion?.id : null;
+    const idGroupe = isGroupe ? currentDiscussion?.id : null;
+    const groupName = currentDiscussion?.nom || "";
+
+    // 1. Envoyer un message "vide" pour créer id_message
+    const tempMessage = {
+      id_expediteur: currentUser.id,
+      expediteur_nom: currentUser.nom,
+      contenu: "", // Contenu vide
+      date_envoie: new Date().toISOString()
+    };
+
+    const res = await connection.invoke(
+      "SendMessageToDiscussion",
+      currentUser.id,
+      idDest,
+      idGroupe,
+      "",
+      groupName
+    );
+
+    if (!res || !res.id_message) {
+      toast.error("Erreur : réponse invalide du serveur.");
+      return;
+    }
+
+    // Envoi du fichier
+    const { chemin } = await envoyerPieceJointe(file, res.id_message, token);
+    console.log("✅ Pièce jointe envoyée :", chemin);
+
+    // Mise à jour dans l’UI
+    setMessages(prev => [...prev, {
+      ...tempMessage,
+      id_message: res.id_message,
+      contenu: "",
+      piece_jointe: res.chemin
+    }]);
+
+  };
 
 
   return (
@@ -413,9 +466,21 @@ const markAsRead = async () => {
                     width: '100%',
                   }}
                 >
-                  <Typography variant="body2" sx={{ fontSize: '0.95rem' }}>
-                    {msg.contenu || msg.texte}
-                  </Typography>
+                  
+                  {msg.piece_jointe && /\.(jpg|jpeg|png|gif)$/i.test(msg.piece_jointe) ? (
+  <img
+    src={`${baseUrl}/${msg.piece_jointe}`}
+    alt="Pièce jointe"
+    style={{ maxWidth: "100%", borderRadius: 8, cursor: "pointer" }}
+    onClick={() => window.open(`${baseUrl}/${msg.piece_jointe}`, "_blank")}
+  />
+) : (
+  <Typography variant="body2" sx={{ fontSize: '0.95rem' }}>
+    {msg.contenu || msg.texte}
+  </Typography>
+)}
+
+
                   <Typography
                     variant="caption"
                     sx={{ fontSize: '0.7rem', opacity: 0.6, textAlign: 'right', mt: 0.5 }}
@@ -461,6 +526,18 @@ const markAsRead = async () => {
             <Picker data={data} onEmojiSelect={addEmoji} theme="light" />
           </Box>
         )}
+
+        <input
+          type="file"
+          id="fileInput"
+          style={{ display: 'none' }}
+          onChange={handleFileUpload}
+        />
+        <IconButton onClick={() => document.getElementById('fileInput')?.click()}>
+          <AttachFileIcon />
+        </IconButton>
+
+
         <input
           type="text"
           placeholder="Écrire un message..."
