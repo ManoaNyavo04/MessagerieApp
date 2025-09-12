@@ -389,6 +389,7 @@ const markAsRead = async () => {
                   alignItems: isMine ? 'flex-end' : 'flex-start',
                   maxWidth: '70%',
                 }}
+                
               >
                 {/* Nom de l'expéditeur pour groupe */}
                 {currentDiscussion?.type === 'groupe' && !isMine && (
