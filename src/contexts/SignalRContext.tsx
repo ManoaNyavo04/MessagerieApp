@@ -19,7 +19,8 @@ export const SignalRProvider: React.FC<SignalRProviderProps> = ({ children, toke
 
     const conn = new HubConnectionBuilder()
       .withUrl(`${baseUrl}/chathub`, {
-        accessTokenFactory: () => token // 🔹 on fournit le token
+        accessTokenFactory: () => token, // 🔹 on fournit le token
+        withCredentials: true
       })
       .withAutomaticReconnect() // 🔹 reconnexion automatique
       .build();
@@ -47,6 +48,7 @@ export const SignalRProvider: React.FC<SignalRProviderProps> = ({ children, toke
 /*const SignalRContext = createContext<HubConnection | null>(null);
 
 export const useSignalR = () => useContext(SignalRContext);
+
 
 export const SignalRProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [connection, setConnection] = useState<HubConnection | null>(null);

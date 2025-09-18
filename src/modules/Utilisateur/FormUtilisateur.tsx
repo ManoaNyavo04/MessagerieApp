@@ -125,6 +125,7 @@ const FormUtilisateur = ({ open, onClose, utilisateur, onUpdated }: FormUtilisat
                     <FormControl fullWidth>
                       <InputLabel id="role-label">Rôle</InputLabel>
                       <Select
+                      
                         labelId="role-label"
                         value={selectedRole ?? ""}
                         label="Rôle"
