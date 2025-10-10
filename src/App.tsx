@@ -29,6 +29,7 @@ function App() {
     <SignalRProvider token={token || ''}>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           {/* Admin Routes */}
           <Route element={<AdminRoute />}>

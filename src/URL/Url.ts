@@ -7,3 +7,4 @@ export const ALL_USER_URL = `${baseUrl}/api/Utilisateur`;
 export const USER_DISCUSSION = `${baseUrl}/api/Message`;
 export const ROLE_URL = `${baseUrl}/api/Role`;
 export const GRP_DISCU_URL = `${baseUrl}/api/GroupeDiscussion`;
+export const PIECE_JOINT_URL = `${baseUrl}/api/PieceJoint`;

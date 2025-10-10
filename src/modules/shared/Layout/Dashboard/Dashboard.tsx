@@ -94,7 +94,7 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
           width: 50,
         },
       }),
-      
+
     },
   }),
 );
@@ -151,7 +151,7 @@ const defaultTheme = createTheme({
             transition: '.5s',
             transform: 'scale(1.1)',
           },
-          color : 'white'
+          color: 'white'
         }
       }
     },
@@ -171,11 +171,12 @@ const defaultTheme = createTheme({
 });
 
 export default function Dashboard() {
-  const [open, setOpen] = React.useState(true);
+  // const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = React.useState(false);
   const toggleDrawer = () => {
     setOpen(!open);
   };
- 
+
   const { profilUtilisateur } = useAppSelector((state) => state.auth);
   const isAdmin = profilUtilisateur?.id_role === 1; // ou "admin" si string
 
@@ -193,7 +194,7 @@ export default function Dashboard() {
             <IconButton
               edge="start"
               color="inherit"
-              background-color = "black"
+              background-color="black"
               aria-label="open drawer"
               onClick={toggleDrawer}
               sx={{
@@ -204,25 +205,30 @@ export default function Dashboard() {
               <img
                 src="/logo2.png"
                 alt="Logo2"
-                style={{ height: '50px', marginRight: '10%',  textAlign : 'center'}}
+                style={{ height: '50px', marginRight: '10%', textAlign: 'center' }}
               />
               {/* <MenuIcon /> */}
-              
+
             </IconButton>
 
-            <IconButton onClick={toggleDrawer} sx={{ color: '#1d2f53', marginLeft: '-20px'}}>
+            {/* <IconButton onClick={toggleDrawer} sx={{ color: '#1d2f53', marginLeft: '-20px'}}>
               <MenuIcon sx={{ color: '#cad2da', fontSize: '50px', width: '40px'}} />
+            </IconButton> */}
+            <IconButton onClick={toggleDrawer} sx={{ color: '#1d2f53', ml: 2 }}>
+              <MenuIcon sx={{ color: '#cad2da', fontSize: '40px' }} />
             </IconButton>
+
 
             <Typography
               component="h1"
               variant="h6"
               // color="inherit"
-              color= "#1d2f53"
+              color="#1d2f53"
               noWrap
-              sx={{ flexGrow: 1,
-                fontFamily: "Russo one",marginLeft: 3, marginTop : 1
-               }}
+              sx={{
+                flexGrow: 1,
+                fontFamily: "Russo one", marginLeft: 3, marginTop: 1
+              }}
             >
               LALAMBY : messagerie
             </Typography>
@@ -241,13 +247,13 @@ export default function Dashboard() {
               justifyContent: 'flex-end',
               px: [1],
               backgroundColor: 'white',
-              
+
             }}
           >
             <img
               src="/logo1.png"
               alt="Logo"
-              style={{ height: '50px', marginRight: '65px', marginTop: '-8px',  textAlign : 'center'}}
+              style={{ height: '50px', marginRight: '65px', marginTop: '-8px', textAlign: 'center' }}
             />
             {/* <IconButton onClick={toggleDrawer} sx={{ color: '#1d2f53'}}>
               <MenuIcon sx={{ color: '#73879c', marginLeft : '-50px'}} />
@@ -258,10 +264,10 @@ export default function Dashboard() {
             <UserMenu />
             {/* <Divider sx={{ my: 1 }} /> */}
             {isAdmin && (
-                <>
+              <>
                 {/* Menus visibles seulement par l'admin */}
                 <AdminMenu />
-                </>
+              </>
             )}
           </List>
         </Drawer>
@@ -284,10 +290,10 @@ export default function Dashboard() {
 
           <Box sx={{ mt: 1, mb: 3, p: 1 }}>
             <Box mb={1}>
-             {/* {profilUtilisateur?.id_role} */}
-             {/* {profilUtilisateur?.id_utilisateur} */}
-             <BreadcrumbManager />
-             <BasicBreadcrumbs />
+              {/* {profilUtilisateur?.id_role} */}
+              {/* {profilUtilisateur?.id_utilisateur} */}
+              <BreadcrumbManager />
+              <BasicBreadcrumbs />
             </Box>
             <Outlet />
             <Copyright sx={{ pt: 4 }} />
