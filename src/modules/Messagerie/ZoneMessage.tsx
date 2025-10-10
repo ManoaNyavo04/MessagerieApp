@@ -19,6 +19,11 @@ import MenuItem from '@mui/material/MenuItem';
 import ListeMembre from '../Groupe/ListeMembre';
 import SendIcon from '@mui/icons-material/Send';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CloseIcon from '@mui/icons-material/Close';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import DescriptionIcon from '@mui/icons-material/Description';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { baseUrl } from '../../URL/Url';
 import { envoyerPieceJointe } from '../PieceJoint/PieceJointService';
 
@@ -40,6 +45,8 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   const [messages, setMessages] = useState<any[]>([]);
   const [message, setMessage] = useState<string>('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -62,6 +69,30 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     setOpenModal(false);
   };
 
+  // Trouver l'index du premier message non lu (envoyé par les autres)
+  const firstUnreadIndex = useMemo(() => {
+    return messages.findIndex(
+      msg =>
+        !msg.est_lu &&
+        msg.id_expediteur !== currentUser.id // reçu et non lu
+    );
+  }, [messages, currentUser.id]);
+
+
+  function mapMessage(msg: any) {
+    return {
+      ...msg,
+      piece_jointe: msg.chemin_fichier || msg.chemin || msg.piece_jointe,
+      nom_piece_jointe: msg.nom_fichier || msg.nom_original || msg.nom_piece_jointe
+    };
+  }
+
+
+
+
+
+
+
 
   const lastMyMessageId = useMemo(() => {
     return messages
@@ -77,17 +108,19 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     }
     try {
       const data = await getMessages(token, currentDiscussion.id, currentDiscussion.type);
-      console.log("📨 Messages reçus :", data);
-      data.map((msg: any) => ({
-  ...msg,
-  piece_jointe: msg.chemin
-}))
 
-      setMessages(data);
+      const dataWithPieceJointe = data.map((msg: any) => ({
+        ...msg,
+        piece_jointe: msg.chemin
+      }));
+
+      setMessages(data.map(mapMessage));
+
     } catch (err) {
       console.error("❌ Erreur chargement messages :", err);
     }
   };
+
 
 
 
@@ -107,10 +140,22 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     scrollableDiv.scrollTop = scrollableDiv.scrollHeight; // 🔹 scroll au dernier message
   }, [messages]);
 
+  useEffect(() => {
+    console.log("📨 Messages affichés :");
+    console.table(messages.map(m => ({
+      id: m.id_message,
+      contenu: m.contenu,
+      piece_jointe: m.piece_jointe,
+      chemin: m.chemin
+    })));
+  }, [messages]);
+
+
 
 
   /*const addEmoji = (emoji: any) => {
     setMessages((prev) => [...prev, {
+    
       isMine: true,
       texte: emoji.native || emoji?.emoji,
       date: new Date().toISOString()
@@ -210,15 +255,25 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
     const handler = (msg: any) => {
       // Ne pas afficher deux fois
+      const mappedMsg = mapMessage(msg);
+
       setMessages(prev => {
-        if (prev.some(m => m.id_message === msg.id_message)) return prev;
-        return [...prev, msg];
+        const exists = prev.find(m => m.id_message === mappedMsg.id_message);
+        if (exists) {
+          // Fusionne les nouvelles infos (utile pour UpdateMessage déguisé en ReceiveMessage)
+          return prev.map(m =>
+            m.id_message === mappedMsg.id_message
+              ? { ...m, ...mappedMsg }
+              : m
+          );
+        }
+        return [...prev, mappedMsg];
       });
 
       // Affiche la notification si le message est reçu par CE client
-      const isForThisUser = msg.id_destinataire === currentUser.id ||
-        (msg.liste_destinataires?.includes?.(currentUser.id));
-      const isGroupMsg = msg.id_groupe_discussion && msg.id_expediteur !== currentUser.id;
+      const isForThisUser = mappedMsg.id_destinataire === currentUser.id ||
+        (mappedMsg.liste_destinataires?.includes?.(currentUser.id));
+      const isGroupMsg = mappedMsg.id_groupe_discussion && mappedMsg.id_expediteur !== currentUser.id;
 
 
       const isFromSomeoneElse = msg.id_expediteur !== currentUser.id;
@@ -263,7 +318,36 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   }, [connection, currentDiscussion, currentUser]);
 
 
-  const envoyerMessage = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!connection) return;
+
+    const handleUpdate = (data: any) => {
+      const { id_message, nom_fichier, chemin_fichier } = data;
+
+      setMessages(prev =>
+        prev.map(m =>
+          m.id_message === id_message
+            ? {
+              ...m,
+              piece_jointe: chemin_fichier,
+              nom_piece_jointe: nom_fichier
+            }
+            : m
+        )
+      );
+    };
+
+    connection.on("UpdateMessage", handleUpdate);
+
+    return () => {
+      connection.off("UpdateMessage", handleUpdate);
+    };
+  }, [connection]);
+
+
+
+
+  /*const envoyerMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || !connection) return;
 
@@ -309,14 +393,14 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
         // Optionnel : jouer un son
         // const audio = new Audio("/sounds/notification.mp3");
         // audio.play();
-      }*/
+      }
 
     } catch (err) {
       console.error("❌ Erreur envoi message", err);
     }
-  };
+  };*/
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  /*const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !connection) return;
 
@@ -326,20 +410,13 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     const idGroupe = isGroupe ? currentDiscussion?.id : null;
     const groupName = currentDiscussion?.nom || "";
 
-    // 1. Envoyer un message "vide" pour créer id_message
-    const tempMessage = {
-      id_expediteur: currentUser.id,
-      expediteur_nom: currentUser.nom,
-      contenu: "", // Contenu vide
-      date_envoie: new Date().toISOString()
-    };
-
+    // 1. Créer un message vide
     const res = await connection.invoke(
       "SendMessageToDiscussion",
       currentUser.id,
       idDest,
       idGroupe,
-      "",
+      "", // contenu vide
       groupName
     );
 
@@ -348,26 +425,116 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
       return;
     }
 
-    // Envoi du fichier
-    const { chemin } = await envoyerPieceJointe(file, res.id_message, token);
-    console.log("✅ Pièce jointe envoyée :", chemin);
+    // 2. Upload du fichier
+    const { chemin, nom } = await envoyerPieceJointe(file, res.id_message, token);
 
-    // Mise à jour dans l’UI
-    setMessages(prev => [...prev, {
-      ...tempMessage,
-      id_message: res.id_message,
-      contenu: "",
-      piece_jointe: res.chemin
-    }]);
+    console.log("✅ Pièce jointe envoyée :", chemin, nom);
 
+    // 3. 🔁 Appelle SignalR pour mettre à jour
+    await connection.invoke(
+      "UpdateMessageWithFile",
+      res.id_message,
+      nom,
+      chemin,
+      idDest,
+      idGroupe,
+      groupName
+    );
+  };*/
+
+
+  const envoyerMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim() && !pendingFile) return; // empêcher message vide
+    if (!connection) return;
+
+    const isPrive = currentDiscussion?.type === 'prive';
+    const isGroupe = currentDiscussion?.type === 'groupe';
+    const idDest = isPrive ? currentDiscussion?.id : null;
+    const idGroupe = isGroupe ? currentDiscussion?.id : null;
+    const groupName = currentDiscussion?.nom || "";
+
+    try {
+      // ✅ 1. Envoyer le message
+      const response = await connection.invoke(
+        "SendMessageToDiscussion",
+        currentUser.id,
+        idDest,
+        idGroupe,
+        message,
+        groupName,
+        false
+      );
+
+      let finalPayload = response;
+
+      // ✅ 2. Upload du fichier s’il y en a un
+      if (response?.id_message) {
+        if (pendingFile) {
+          const { chemin, nom } = await envoyerPieceJointe(pendingFile, response.id_message, token);
+
+          finalPayload = {
+            ...response,
+            chemin_fichier: chemin,
+            nom_fichier: nom
+          };
+
+          await connection.invoke(
+            "UpdateMessageWithFile",
+            response.id_message,
+            nom,
+            chemin,
+            idDest,
+            idGroupe,
+            groupName
+          );
+        }
+
+        // ✅ 3. Affiche le message dans la liste
+        setMessages(prev => [...prev, mapMessage(finalPayload)]);
+      }
+
+      // ✅ 4. Réinitialiser les champs après envoi
+      setMessage("");
+      setPendingFile(null); // 🔹 Efface l’aperçu du fichier envoyé
+
+    } catch (err) {
+      console.error("❌ Erreur envoi message", err);
+    }
+  };
+
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPendingFile(file); // juste stocker pour aperçu
+    }
+  };
+
+  const getFileIcon = (filename: string) => {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'pdf':
+        return <PictureAsPdfIcon color="error" />;
+      case 'doc':
+      case 'docx':
+        return <DescriptionIcon color="primary" />;
+      case 'xls':
+      case 'xlsx':
+        return <TableChartIcon color="success" />;
+      default:
+        return <InsertDriveFileIcon />;
+    }
   };
 
 
   return (
     <Paper sx={{
       p: 2,
+
       height: '80vh',
       display: 'flex',
+
       flexDirection: 'column',
       // backgroundColor: '#f0f2f5', // clair, comme Messenger
     }}
@@ -389,6 +556,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
               transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
+
               <MenuItem onClick={handleOpenModal}>Membres</MenuItem>
             </Menu>
 
@@ -428,85 +596,143 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
           const isMine = msg.id_expediteur === currentUser.id;
           const isLastMine = isMine && msg.id_message === lastMyMessageId;
 
-          // const isLastMine = isMine && msg.id_message === messages
-          //   .filter(m => m.id_expediteur === currentUser.id)
-          //   .map(m => m.id_message)
-          //   .pop();
+          const isFirstUnread = idx === firstUnreadIndex;
 
           return (
-            <Box key={idx} sx={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: isMine ? 'flex-end' : 'flex-start',
-                  maxWidth: '70%',
-                }}
-              >
-                {/* Nom de l'expéditeur pour groupe */}
-                {currentDiscussion?.type === 'groupe' && !isMine && (
-                  <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5, ml: 1 }}>
-                    {msg.nom_expediteur}
-                  </Typography>
-                )}
-
+            <React.Fragment key={msg.id_message || idx}>
+              {/* Ligne de séparation "Nouveau" */}
+              {isFirstUnread && (
                 <Box
                   sx={{
-                    backgroundColor: isMine ? '#1d2f54e8' : '#E5E5EA',
-                    color: isMine ? 'white' : 'black',
-                    px: 2,
-                    py: 1.5,
-                    borderRadius: 4,
-                    borderTopLeftRadius: isMine ? 12 : 0,
-                    borderTopRightRadius: isMine ? 0 : 12,
-                    borderBottomLeftRadius: 12,
-                    borderBottomRightRadius: 12,
-                    wordBreak: 'break-word',
-                    boxShadow: 2,
-                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    my: 2,
                   }}
                 >
-                  
-                  {msg.piece_jointe && /\.(jpg|jpeg|png|gif)$/i.test(msg.piece_jointe) ? (
-  <img
-    src={`${baseUrl}/${msg.piece_jointe}`}
-    alt="Pièce jointe"
-    style={{ maxWidth: "100%", borderRadius: 8, cursor: "pointer" }}
-    onClick={() => window.open(`${baseUrl}/${msg.piece_jointe}`, "_blank")}
-  />
-) : (
-  <Typography variant="body2" sx={{ fontSize: '0.95rem' }}>
-    {msg.contenu || msg.texte}
-  </Typography>
-)}
-
-
+                  <Box sx={{ flex: 1, height: '1px', backgroundColor: '#ccc' }} />
                   <Typography
                     variant="caption"
-                    sx={{ fontSize: '0.7rem', opacity: 0.6, textAlign: 'right', mt: 0.5 }}
+                    sx={{
+                      mx: 2,
+                      backgroundColor: '#fff',
+                      padding: '0 8px',
+                      color: '#555',
+                      fontWeight: 600,
+                    }}
                   >
-                    {new Date(msg.date_envoie || msg.date).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    Nouveau
                   </Typography>
-
-
+                  <Box sx={{ flex: 1, height: '1px', backgroundColor: '#ccc' }} />
                 </Box>
-                {/* 🔹 VU conditionnel */}
-                {isLastMine && msg.est_lu && currentDiscussion?.type === 'prive' && (
-                  <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5, ml: 1 }}>
-                    Vu
-                  </Typography>
-                )}
+              )}
 
-                {isLastMine && msg.est_lu && currentDiscussion?.type === 'groupe' && (
-                  <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5, ml: 1 }}>
-                    Vu par {msg.liste_utilisateur_vu?.join(", ")}
-                  </Typography>
-                )}
+              {/* Message normal */}
+              <Box sx={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: isMine ? 'flex-end' : 'flex-start',
+                    maxWidth: '70%',
+                  }}
+                >
+                  {/* Nom de l'expéditeur (groupe) */}
+                  {currentDiscussion?.type === 'groupe' && !isMine && (
+                    <Typography
+                      variant="caption"
+                      sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5, ml: 1 }}
+                    >
+                      {msg.nom_expediteur}
+                    </Typography>
+                  )}
+
+                  <Box
+                    sx={{
+                      backgroundColor: isMine ? '#1d2f54e8' : '#E5E5EA',
+                      color: isMine ? 'white' : 'black',
+                      px: 2,
+                      py: 1.5,
+                      borderRadius: 4,
+                      borderTopLeftRadius: isMine ? 12 : 0,
+                      borderTopRightRadius: isMine ? 0 : 12,
+                      borderBottomLeftRadius: 12,
+                      borderBottomRightRadius: 12,
+                      wordBreak: 'break-word',
+                      boxShadow: 2,
+                      width: '100%',
+                    }}
+                  >
+                    {/* Contenu ou pièce jointe */}
+                    {msg.piece_jointe ? (
+                      /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(msg.piece_jointe) ? (
+                        <img
+                          src={`http://localhost:5032/Uploads/${msg.piece_jointe}`}
+                          alt="Pièce jointe"
+                          style={{
+                            maxWidth: "100%",
+                            borderRadius: 8,
+                            cursor: "pointer",
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                          }}
+                          onClick={() => window.open(`http://localhost:5032/Uploads/${msg.piece_jointe}`, "_blank")}
+                        />
+                      ) : (
+                        <a
+                          href={`http://localhost:5032/Uploads/${msg.piece_jointe}`}
+                          // target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            textDecoration: 'none',
+                            backgroundColor: '#f5f5f5',
+                            padding: '8px 12px',
+                            borderRadius: 8,
+                            color: '#333',
+                            fontWeight: 500,
+                          }}
+                        >
+                          {getFileIcon(msg.piece_jointe)}
+                          {msg.nom_piece_jointe || msg.piece_jointe}
+                        </a>
+                      )
+                    ) : (
+                      <Typography>{msg.contenu}</Typography>
+
+                    )}
+
+                    <Typography
+                      variant="caption"
+                      sx={{ fontSize: '0.7rem', opacity: 0.6, textAlign: 'right', mt: 0.5 }}
+                    >
+                      {new Date(msg.date_envoie || msg.date).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </Typography>
+                  </Box>
+
+                  {/* VU affichage */}
+                  {isLastMine && msg.est_lu && currentDiscussion?.type === 'prive' && (
+                    <Typography
+                      variant="caption"
+                      sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5, ml: 1 }}
+                    >
+                      Vu
+                    </Typography>
+                  )}
+                  {isLastMine && msg.est_lu && currentDiscussion?.type === 'groupe' && (
+                    <Typography
+                      variant="caption"
+                      sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5, ml: 1 }}
+                    >
+                      Vu par {msg.liste_utilisateur_vu?.join(", ")}
+                    </Typography>
+                  )}
+                </Box>
               </Box>
-            </Box>
+            </React.Fragment>
           );
         })}
 
@@ -531,8 +757,9 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
           type="file"
           id="fileInput"
           style={{ display: 'none' }}
-          onChange={handleFileUpload}
+          onChange={handleFileSelect}
         />
+
         <IconButton onClick={() => document.getElementById('fileInput')?.click()}>
           <AttachFileIcon />
         </IconButton>
@@ -545,6 +772,39 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
           onChange={(e) => setMessage(e.target.value)}
           style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #ccc' }}
         />
+        {pendingFile && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              border: '1px solid #ccc',
+              borderRadius: 4,
+              padding: 1,
+              backgroundColor: '#f9f9f9',
+              mt: 1,
+              maxWidth: 300,
+            }}
+          >
+            {pendingFile.type.startsWith("image/") ? (
+              <img
+                src={URL.createObjectURL(pendingFile)}
+                alt="Aperçu"
+                style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }}
+              />
+            ) : (
+              <AttachFileIcon />
+            )}
+            <Typography variant="body2" sx={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {pendingFile.name}
+            </Typography>
+            <IconButton size="small" onClick={() => setPendingFile(null)}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        )}
+
+
         <IconButton type="submit" color="primary">
           <SendIcon />
         </IconButton>
