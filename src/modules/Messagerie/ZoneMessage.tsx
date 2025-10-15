@@ -666,7 +666,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                     {msg.piece_jointe ? (
                       /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(msg.piece_jointe) ? (
                         <img
-                          src={`http://localhost:5032/Uploads/${msg.piece_jointe}`}
+                          src={`${baseUrl}/Uploads/${msg.piece_jointe}`}
                           alt="Pièce jointe"
                           style={{
                             maxWidth: "100%",
@@ -674,11 +674,11 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                             cursor: "pointer",
                             boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
                           }}
-                          onClick={() => window.open(`http://localhost:5032/Uploads/${msg.piece_jointe}`, "_blank")}
+                          onClick={() => window.open(`${baseUrl}/Uploads/${msg.piece_jointe}`, "_blank")}
                         />
                       ) : (
                         <a
-                          href={`http://localhost:5032/Uploads/${msg.piece_jointe}`}
+                          href={`${baseUrl}/Uploads/${msg.piece_jointe}`}
                           // target="_blank"
                           rel="noopener noreferrer"
                           style={{
