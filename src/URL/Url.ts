@@ -8,3 +8,4 @@ export const USER_DISCUSSION = `${baseUrl}/api/Message`;
 export const ROLE_URL = `${baseUrl}/api/Role`;
 export const GRP_DISCU_URL = `${baseUrl}/api/GroupeDiscussion`;
 export const PIECE_JOINT_URL = `${baseUrl}/api/PieceJoint`;
+export const ESPACE_TRAVAIL_URL = `${baseUrl}/api/EspaceTravail`;

@@ -8,6 +8,7 @@ import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import Tooltip from '@mui/material/Tooltip';
 import CreerGroupeModal from '../Groupe/CreerGroupeModal';
 import PersonIcon from '@mui/icons-material/Person';
+import EspaceSelect from '../EspaceTravail/EspaceSelect';
 
 
 interface Discussion {
@@ -28,6 +29,8 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [unreadCounts, setUnreadCounts] = useState<{ [key: string]: number }>({});
   const [openModal, setOpenModal] = useState(false);
+  const [espaceActif, setEspaceActif] = useState<any | null>(null);
+
 
 
   const connection = useSignalR();
@@ -134,6 +137,7 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
 
   return (
     <Paper sx={{ p: 2, height: '80vh', overflowY: 'auto' }}>
+      <EspaceSelect token={token} onEspaceChange={setEspaceActif} />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6" gutterBottom>Mes Discussions</Typography>
         <Tooltip title="Créer une discussion de groupe">
