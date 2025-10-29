@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom'; // ou votre StyledLink personnalisé
 // import SelectBox from '@/components/SelectBox'; // adapter selon votre structure
 import ListItemButton from '@mui/material/ListItemButton';
@@ -10,6 +10,8 @@ import ChatIcon from '@mui/icons-material/Chat';
 import { styled } from '@mui/material';
 import SelectBox from './SelectBox';
 import { addNavigation } from '../../Slices/listeNavigationSlice';
+import { useAppSelector } from '../../hooks/redux-hooks';
+import { EspaceTravailDto, getEspacesUtilisateur } from '../../../EspaceTravail/EspaceTravailService';
 
 const StyledLink = styled(Link)(({ theme }) => ({
   textDecoration: 'none',
@@ -25,6 +27,22 @@ type PathToActiveBox = {
   [key: string]: number;
 };
 const UserMenu = () => {
+  const { profilUtilisateur, token } = useAppSelector((state) => state.auth);
+  const [espaces, setEspaces] = useState<EspaceTravailDto[]>([]);
+
+
+  useEffect(() => {
+      if (profilUtilisateur?.id_utilisateur && token) {
+        getEspacesUtilisateur(token)
+          .then(setEspaces)
+          .catch(console.error);
+      }
+    }, [profilUtilisateur, token]);
+
+  const handleSwitch = (espace: any) => {
+    localStorage.setItem("currentEspace", JSON.stringify(espace));
+    window.location.reload(); // ou navigation si tu veux changer le contexte
+  };
   return (
     <>
         <StyledLink to={"/messagerie"}>
@@ -48,6 +66,15 @@ const UserMenu = () => {
             </ListItemButton>
         </SelectBox>
         </StyledLink> */}
+
+        {espaces.map((e) => (
+        <ListItemButton key={e.idEspaceTravail} onClick={() => handleSwitch(e)}>
+          <ListItemIcon sx={{ marginRight: -2.5 }}>
+            <WorkspacesIcon sx={{ color: 'white' }} />
+          </ListItemIcon>
+          <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }} primary={e.espaceTravail} />
+        </ListItemButton>
+      ))}
     </>
   )
 }

@@ -44,7 +44,9 @@ const Login = () => {
                     id_role: result.profilUtilisateur.id_role,
                     role: Number(result.profilUtilisateur.id_role),
                 },
+                espacesTravail: [] 
             };
+
 
             console.log("Résultat reçu :", formattedResult);
 

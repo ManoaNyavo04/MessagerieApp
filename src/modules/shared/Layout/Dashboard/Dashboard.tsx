@@ -22,6 +22,8 @@ import AdminMenu from './AdminMenu';
 import BtnLogout from './BtnLogout';
 import BasicBreadcrumbs from './BasicBreadcrumbs';
 import BreadcrumbManager from './BreadcrumbManager';
+import { useEffect, useState } from 'react';
+import { EspaceTravailDto, getEspacesUtilisateur } from '../../../EspaceTravail/EspaceTravailService';
 
 
 function Copyright(props: any) {
@@ -177,8 +179,20 @@ export default function Dashboard() {
     setOpen(!open);
   };
 
-  const { profilUtilisateur } = useAppSelector((state) => state.auth);
+  // const [espaces, setEspaces] = useState([]);
+  const [espaces, setEspaces] = useState<EspaceTravailDto[]>([]);
+
+
+  const { profilUtilisateur, token } = useAppSelector((state) => state.auth);
   const isAdmin = profilUtilisateur?.id_role === 1; // ou "admin" si string
+
+  useEffect(() => {
+    if (profilUtilisateur?.id_utilisateur && token) {
+      getEspacesUtilisateur(token)
+        .then(setEspaces)
+        .catch(console.error);
+    }
+  }, [profilUtilisateur, token]);
 
 
   return (
