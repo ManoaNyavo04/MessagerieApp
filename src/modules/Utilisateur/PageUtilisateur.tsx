@@ -6,11 +6,14 @@ import { FileOpen, MoreVert as MoreVertIcon } from '@mui/icons-material';
 import FormUtilisateur from './FormUtilisateur';
 import { addNavigation } from '../shared/Slices/listeNavigationSlice';
 import { useAppDispatch } from '../shared/hooks/redux-hooks';
+import FormAffectationUtilisateur from '../EspaceTravail/FormAffectationUtilisateur';
 
 const PageUtilisateur = () => {
   const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
   const [openForm, setOpenForm] = useState(false);
- 
+  const [openAffectation, setOpenAffectation] = useState(false);
+
+
 
   const viewUser = (id: number) => {
     const user = utilisateurs.find(u => u.id === id);
@@ -64,6 +67,16 @@ const PageUtilisateur = () => {
     console.log("🗑️ Supprimer utilisateur :", selectedUser);
     handleMenuClose();
   };
+  const handleOpenAffectation = () => {
+    if (selectedUser) setOpenAffectation(true);
+    handleMenuClose();
+  };
+
+
+  const handleCloseAffectation = () => {
+    setOpenAffectation(false);
+  };
+
 
   const actionColumn = {
     field: "actions",
@@ -128,9 +141,16 @@ const PageUtilisateur = () => {
             >
               <MenuItem onClick={handleEdit}>Modifier</MenuItem>
               <MenuItem onClick={handleDelete}>Supprimer</MenuItem>
+              <MenuItem onClick={handleOpenAffectation}>Affecter</MenuItem>
             </Menu>
 
             <FormUtilisateur open={openForm} onClose={handleCloseForm} />
+            <FormAffectationUtilisateur
+              open={openAffectation}
+              onClose={handleCloseAffectation}
+              selectedUser={selectedUser}
+            />
+
           </Paper>
         </Grid>
       </Grid>

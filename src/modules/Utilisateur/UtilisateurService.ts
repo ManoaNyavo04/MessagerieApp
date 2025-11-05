@@ -84,7 +84,9 @@ export async function addUtilisateurService(utilisateur: UtilisateurDto, token: 
 }
 
 export async function searchUser(token: string, searchTerm: string) {
+  console.log("🔍 Token envoyé :", token); 
   const response = await fetch(`${ALL_USER_URL}/searchUser?searchTerm=${encodeURIComponent(searchTerm)}`, {
+    method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json"

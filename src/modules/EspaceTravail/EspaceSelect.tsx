@@ -1,104 +1,84 @@
 import React, { useEffect, useState } from "react";
 import { Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from "@mui/material";
-import { getEspacesByUtilisateurId } from "./EspaceTravailService";
+import { useNavigate } from "react-router-dom";
+import { changerEspace, getEspacesByUtilisateurId } from "./EspaceTravailService";
+import { useAppDispatch } from "../shared/hooks/redux-hooks";
+import { setAuthData } from "../shared/Slices/authSlice";
 
 interface Espace {
-    idEspaceTravail: number;
-    espaceTravail: string;
+  idEspaceTravail: number;
+  espaceTravail: string;
 }
 
 interface EspaceSelectProps {
-    token: string;
-    onEspaceChange: (espace: Espace) => void;
+  token: string;
+  onEspaceChange: (espace: Espace) => void;
+  // setToken: (newToken: string) => void; // 🔥 ajoute ce prop pour maj le token global
 }
 
-const EspaceSelect: React.FC<EspaceSelectProps> = ({ token, onEspaceChange }) => {
-    const [espaces, setEspaces] = useState<Espace[]>([]);
-    const [selectedEspace, setSelectedEspace] = useState<number | "">("");
+const EspaceSelect: React.FC<EspaceSelectProps> = ({ token, onEspaceChange}) => {
+  const [espaces, setEspaces] = useState<Espace[]>([]);
+  const [selectedEspace, setSelectedEspace] = useState<number | "">("");
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        async function fetchEspaces() {
-            try {
-                const data = await getEspacesByUtilisateurId(token);
-                setEspaces(data);
+  useEffect(() => {
+    async function fetchEspaces() {
+      try {
+        const data = await getEspacesByUtilisateurId(token);
+        setEspaces(data);
+      } catch (error) {
+        console.error("Erreur chargement espaces:", error);
+      }
+    }
+    fetchEspaces();
+  }, [token]);
 
-                // ✅ Si l'utilisateur n'a qu'un seul espace → sélection automatique
-                if (data.length === 1) {
-                    setSelectedEspace(data[0].idEspaceTravail);
-                    onEspaceChange(data[0]);
-                }
-            } catch (error) {
-                console.error("Erreur chargement espaces:", error);
-            }
-        }
+  const handleChange = async (event: SelectChangeEvent<number | "">) => {
+    const id = Number(event.target.value);
+    setSelectedEspace(id);
 
-        fetchEspaces();
-    }, [token]);
+    const espace = espaces.find(e => e.idEspaceTravail === id);
+    if (espace) {
+      onEspaceChange(espace);
 
-    const handleChange = (event: SelectChangeEvent<number | "">) => {
-        const id = Number(event.target.value);
-        setSelectedEspace(id);
+      try {
+        // 🔹 Appel de ton API pour générer le nouveau token
+        const result = await changerEspace(token, id);
 
-        const espace = espaces.find(e => e.idEspaceTravail === id);
-        if (espace) onEspaceChange(espace);
-    };
+        // 🔹 Mise à jour du store Redux et du localStorage
+        dispatch(setAuthData({
+          token: result.token,
+          profilUtilisateur: result.profilUtilisateur
+        }));
 
-    return (
-  <Box sx={{ mb: 2 }}>
-    <FormControl fullWidth size="small" sx={{ "& .MuiOutlinedInput-notchedOutline": { border: "none" } }}>
-      <InputLabel
-        id="espace-select-label"
-        sx={{
-          fontWeight: "bold",
-          color: "text.primary",
-        }}
-      >
-        Espace de travail
-      </InputLabel>
+        // 🔹 Redirection automatique vers /messagerie
+        navigate("/messagerie");
+      } catch (error) {
+        console.error("Erreur changement espace :", error);
+      }
+    }
+  };
 
-      <Select
-        labelId="espace-select-label"
-        value={selectedEspace}
-        label="Espace de travail"
-        onChange={handleChange}
-        sx={{
-          fontWeight: "bold", // police en gras
-          bgcolor: "transparent", // pas de fond
-          "& .MuiSelect-select": {
-            paddingY: 1,
-          },
-          "&:hover .MuiOutlinedInput-notchedOutline": {
-            border: "none", // toujours sans bordure au survol
-          },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            border: "none",
-          },
-        }}
-        MenuProps={{
-          PaperProps: {
-            sx: {
-              borderRadius: 2,
-              "& .MuiMenuItem-root": {
-                fontWeight: "bold",
-                transition: "background-color 0.2s ease",
-                "&:hover": {
-                  backgroundColor: "rgba(0, 0, 0, 0.08)", // couleur du hover
-                },
-              },
-            },
-          },
-        }}
-      >
-        {espaces.map((espace) => (
-          <MenuItem key={espace.idEspaceTravail} value={espace.idEspaceTravail}>
-            {espace.espaceTravail}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  </Box>
-);
-
+  return (
+    <Box sx={{ mb: 2 }}>
+      <FormControl fullWidth size="small">
+        <InputLabel id="espace-select-label">Espace de travail</InputLabel>
+        <Select
+          labelId="espace-select-label"
+          value={selectedEspace}
+          label="Espace de travail"
+          onChange={handleChange}
+        >
+          {espaces.map((espace) => (
+            <MenuItem key={espace.idEspaceTravail} value={espace.idEspaceTravail}>
+              {espace.espaceTravail}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </Box>
+  );
 };
 
 export default EspaceSelect;

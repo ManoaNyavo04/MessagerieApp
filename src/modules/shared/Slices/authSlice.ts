@@ -35,8 +35,21 @@ const authSlice = createSlice({
     ) => {
       state.token = action.payload.token;
       state.profilUtilisateur = action.payload.profilUtilisateur;
-      state.isAuthenticated = true; 
+      state.isAuthenticated = true;
     },
+    setAuthData: (
+      state,
+      action: PayloadAction<{ token: string; profilUtilisateur: ProfilUtilisateur }>
+    ) => {
+      state.token = action.payload.token;
+      state.profilUtilisateur = action.payload.profilUtilisateur;
+      state.isAuthenticated = true;
+
+      // 🔐 Enregistre aussi dans le localStorage pour garder la session
+      localStorage.setItem("token", action.payload.token);
+      localStorage.setItem("profilUtilisateur", JSON.stringify(action.payload.profilUtilisateur));
+    },
+
     logout: (state) => {
       state.token = null;
       state.profilUtilisateur = null;
@@ -44,7 +57,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { loginSuccess, logout } = authSlice.actions;
+export const { loginSuccess, logout, setAuthData } = authSlice.actions;
 export default authSlice.reducer;
 
 

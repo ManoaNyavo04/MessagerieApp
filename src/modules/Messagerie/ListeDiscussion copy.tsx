@@ -36,8 +36,10 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
     }
 
     if (searchTerm.trim().length > 0) {
+      console.log("🔎 Recherche lancée pour :", searchTerm);
       const fetchSearchResults = async () => {
         try {
+          console.log("Token avant appel API :", token);
           const results = await searchUser(token, searchTerm);
           setSearchResults(results);
         } catch (err) {

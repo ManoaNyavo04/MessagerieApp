@@ -38,6 +38,17 @@ const UserMenu = () => {
         </SelectBox> 
         </StyledLink>
 
+        <StyledLink to={""}>
+        <SelectBox onClick={() => { addNavigation({ title: "Espace de travail", link: "", isActive: true }); }}>
+            <ListItemButton>
+            <ListItemIcon sx={{ marginRight: -2.5 }}>
+                <WorkspacesIcon  sx={{color: 'white'}}/>
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="Espace de travail" />
+            </ListItemButton>
+        </SelectBox> 
+        </StyledLink>
+
         {/* <StyledLink to={""}>
         <SelectBox onClick={() => { addNavigation({ title: "Discussion", link: "/messagerie", isActive: true }); }}>
             <ListItemButton>
