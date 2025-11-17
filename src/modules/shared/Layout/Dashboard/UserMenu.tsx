@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // ou votre StyledLink personnalisé
-// import SelectBox from '@/components/SelectBox'; // adapter selon votre structure
+import React from 'react';
+import { Link } from 'react-router-dom';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import DevicesIcon from '@mui/icons-material/Devices';
-import WorkspacesIcon from '@mui/icons-material/Workspaces';
 import ChatIcon from '@mui/icons-material/Chat';
+import AddIcon from '@mui/icons-material/Add';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
+import Tooltip from '@mui/material/Tooltip';
 import { styled } from '@mui/material';
 import SelectBox from './SelectBox';
 import { addNavigation } from '../../Slices/listeNavigationSlice';
@@ -19,48 +19,42 @@ const StyledLink = styled(Link)(({ theme }) => ({
     fontFamily: 'Rubik',
   },
   fontFamily: 'Rubik',
+}));
 
-}))
-type PathToActiveBox = {
-  [key: string]: number;
-};
 const UserMenu = () => {
   return (
     <>
-        <StyledLink to={"/messagerie"}>
+      {/* ======= MENU : Discussion ======= */}
+      <StyledLink to={"/messagerie"}>
         <SelectBox onClick={() => { addNavigation({ title: "Discussion", link: "/messagerie", isActive: true }); }}>
-            <ListItemButton>
+          <ListItemButton>
             <ListItemIcon sx={{ marginRight: -2.5 }}>
-                <ChatIcon  sx={{color: 'white'}}/>
+              <Tooltip title="Ouvrir la messagerie" arrow placement="right">
+                <ChatIcon sx={{ color: 'white' }} />
+              </Tooltip>
             </ListItemIcon>
-            <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="Discussion" />
-            </ListItemButton>
-        </SelectBox> 
-        </StyledLink>
-
-        <StyledLink to={""}>
-        <SelectBox onClick={() => { addNavigation({ title: "Espace de travail", link: "", isActive: true }); }}>
-            <ListItemButton>
-            <ListItemIcon sx={{ marginRight: -2.5 }}>
-                <WorkspacesIcon  sx={{color: 'white'}}/>
-            </ListItemIcon>
-            <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="Espace de travail" />
-            </ListItemButton>
-        </SelectBox> 
-        </StyledLink>
-
-        {/* <StyledLink to={""}>
-        <SelectBox onClick={() => { addNavigation({ title: "Discussion", link: "/messagerie", isActive: true }); }}>
-            <ListItemButton>
-            <ListItemIcon sx={{ marginRight: -2.5 }}>
-                <WorkspacesIcon  sx={{color: 'white'}}/>
-            </ListItemIcon>
-            <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }}  primary="Espace de travail" />
-            </ListItemButton>
+            <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }} primary="Discussion" />
+          </ListItemButton>
         </SelectBox>
-        </StyledLink> */}
-    </>
-  )
-}
+      </StyledLink>
 
-export default UserMenu
+      
+
+      {/* ======= MENU : Membre Espace de travail ======= */}
+      <StyledLink to={"/membre-espace-travail"}>
+        <SelectBox onClick={() => { addNavigation({ title: "Membre", link: "", isActive: true }); }}>
+          <ListItemButton>
+            <ListItemIcon sx={{ marginRight: -2.5 }}>
+              <Tooltip title="Membre de l'espace de travail" arrow placement="right">
+                <GroupAddIcon sx={{ color: 'white' }} /> 
+              </Tooltip>
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }} primary="Membre" />
+          </ListItemButton>
+        </SelectBox>
+      </StyledLink>
+    </>
+  );
+};
+
+export default UserMenu;

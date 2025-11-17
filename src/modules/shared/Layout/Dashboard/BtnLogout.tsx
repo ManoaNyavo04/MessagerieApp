@@ -1,8 +1,9 @@
-import { Button } from '@mui/material'
+import { Button, IconButton } from '@mui/material'
 import React from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks/redux-hooks';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../../Slices/authSlice';
+import { Logout } from '@mui/icons-material';
 
 const BtnLogout = () => {
     const dispatch = useAppDispatch();
@@ -19,11 +20,10 @@ const BtnLogout = () => {
         }
     };
   return (
-    <Button variant="contained" sx={{ borderRadius : 2 }}  onClick={handleLogout} >
-              Se Deconnecter
-
-
-    </Button>
+    <IconButton sx={{ color : '#cad2da' }} onClick={handleLogout}>
+        <Logout />
+        {/* Se Deconnecter */}
+    </IconButton>
   )
 }
 

@@ -146,7 +146,7 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
 
   return (
     <Paper sx={{ p: 2, height: '80vh', overflowY: 'auto' }}>
-      <Typography variant="h6" gutterBottom>Mes Discussions</Typography>
+      {/* <Typography variant="h6" gutterBottom>Mes Discussions</Typography> */}
 
       {/* Barre de recherche */}
       <Box sx={{ display: "flex", mb: 2 }}>

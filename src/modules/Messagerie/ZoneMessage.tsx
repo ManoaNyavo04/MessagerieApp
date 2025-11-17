@@ -648,7 +648,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
                   <Box
                     sx={{
-                      backgroundColor: isMine ? '#1d2f54e8' : '#E5E5EA',
+                      backgroundColor: isMine ? '#060a12db' : '#E5E5EA', // #060a12db, #1d2f54e8
                       color: isMine ? 'white' : 'black',
                       px: 2,
                       py: 1.5,

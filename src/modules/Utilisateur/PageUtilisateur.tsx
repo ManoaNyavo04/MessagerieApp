@@ -1,17 +1,25 @@
 import React, { useEffect, useState } from 'react'
-import { getAllUtilisateursService, Utilisateur } from './UtilisateurService';
-import { Button, Grid, IconButton, Menu, MenuItem, Paper } from '@mui/material';
+import { getAllUtilisateursService, rafraichir, Utilisateur } from './UtilisateurService';
+import { Alert, Button, Chip, Grid, IconButton, Menu, MenuItem, Paper, Snackbar, Tooltip } from '@mui/material';
 import GenericList from '../shared/components/GenericList';
-import { FileOpen, MoreVert as MoreVertIcon } from '@mui/icons-material';
+import { FileOpen, MoreVert as MoreVertIcon, AdminPanelSettings as AdminPanelSettingsIcon, Person as PersonIcon, Refresh as RefreshIcon, Add as AddIcon } from '@mui/icons-material';
 import FormUtilisateur from './FormUtilisateur';
 import { addNavigation } from '../shared/Slices/listeNavigationSlice';
 import { useAppDispatch } from '../shared/hooks/redux-hooks';
 import FormAffectationUtilisateur from '../EspaceTravail/FormAffectationUtilisateur';
 
-const PageUtilisateur = () => {
+interface PageUtilisateurProps {
+  onClose?: () => void;
+}
+
+const PageUtilisateur = ({ onClose }: PageUtilisateurProps) => {
   const [utilisateurs, setUtilisateurs] = useState<Utilisateur[]>([]);
   const [openForm, setOpenForm] = useState(false);
   const [openAffectation, setOpenAffectation] = useState(false);
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
 
 
@@ -58,6 +66,7 @@ const PageUtilisateur = () => {
     setAnchorEl(null);
   };
 
+
   const handleEdit = () => {
     setOpenForm(true);
     handleMenuClose();
@@ -92,19 +101,98 @@ const PageUtilisateur = () => {
     )
   };
 
+  const refreshData = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("Aucun token trouvé pour rafraîchir.");
+      return;
+    }
+
+    try {
+      const refresh = await rafraichir(token);
+
+      // ⚠️ Si ton backend ne renvoie qu’un message (et non la liste complète),
+      // recharge quand même les utilisateurs depuis l’API principale
+      const newData = await getAllUtilisateursService(token);
+      const dataAvecId = newData.map((u: any) => ({
+        ...u,
+        id: u.id_utilisateur
+      }));
+
+      // 🔍 Comparaison entre l’ancienne et la nouvelle liste
+      const anciensIds = utilisateurs.map(u => u.id_utilisateur).sort();
+      const nouveauxIds = dataAvecId.map(u => u.id_utilisateur).sort();
+
+      const isIdentique =
+        anciensIds.length === nouveauxIds.length &&
+        anciensIds.every((id, idx) => id === nouveauxIds[idx]);
+
+      if (isIdentique) {
+        setSnackbarMessage("⚠️ Aucune mise à jour détectée.");
+        setSnackbarSeverity("error");
+      } else {
+        setSnackbarMessage("✅ Synchronisation terminée avec succès !");
+        setSnackbarSeverity("success");
+      }
+
+      setSnackbarOpen(true);
+      setUtilisateurs(dataAvecId);
+
+    } catch (err) {
+      console.error("Erreur lors du rafraîchissement :", err);
+      setSnackbarMessage("❌ Erreur lors du rafraîchissement.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+    }
+  };
+
+
 
 
   const columns = [
-    { field: "nom", headerName: "Nom", width: 150 },
-    { field: "prenom", headerName: "Prénom", width: 150 },
-    { field: "matricule", headerName: "Matricule", width: 150 },
-    { field: "role", headerName: "Rôle", width: 120 },
-    actionColumn
-  ];
+  actionColumn,
+  {
+    field: "role",
+    headerName: "Rôle",
+    width: 120,
+    renderCell: (params: any) => {
+      if (params.value === "admin") {
+        return (
+          <Tooltip title="Administrateur">
+            <Chip
+              icon={<AdminPanelSettingsIcon style={{ color: 'f87171', fontSize: 18 }} />}
+              // label="Admin"
+              // size="small"
+              // sx={{ bgcolor: '#f87171', color: 'white', fontWeight: 'bold' }}
+            />
+          </Tooltip>
+        )
+      } else {
+        return (
+          <Tooltip title="Utilisateur">
+            <Chip
+              icon={<PersonIcon style={{ color: 'purple', fontSize: 20 }} />}
+              // label="User"
+              // size="small"
+              sx={{ color: 'purple', fontWeight: 'bold' }}
+            />
+          </Tooltip>
+        )
+      }
+    }
+  },
+  
+  { field: "matricule", headerName: "Matricule", width: 150, sortable: true  },
+  { field: "nom", headerName: "Nom", width: 150, sortable: true  },
+  { field: "prenom", headerName: "Prénom", width: 150, sortable: true  },
+  
+];
 
 
   const handleOpenForm = () => setOpenForm(true);
   const handleCloseForm = () => setOpenForm(false);
+
+
 
   return (
     <>
@@ -119,10 +207,10 @@ const PageUtilisateur = () => {
               {/* {(context.isAdminLogistique || context.isInformaticien) && */}
               <>
                 {/* <FormArticle executable={actualiserDonnees} /> */}
-                <Button size="large" variant='outlined' startIcon={<FileOpen />} onClick={handleOpenForm}>
-                  Ajouter
+                <Button size="large" sx={{ border: 'none' }} variant='outlined' onClick={handleOpenForm}>
+                 <AddIcon />
                 </Button>
-                <Button size="large" variant='outlined' startIcon={<FileOpen />} >Rafraicir</Button>
+                <Button size="large" sx={{ border: 'none' }} variant='outlined' onClick={refreshData}><RefreshIcon /></Button>
               </>
               {/* } */}
             </div>
@@ -152,6 +240,21 @@ const PageUtilisateur = () => {
             />
 
           </Paper>
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={3000}
+            onClose={() => setSnackbarOpen(false)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          >
+            <Alert
+              onClose={() => setSnackbarOpen(false)}
+              severity={snackbarSeverity}
+              variant="filled"
+              sx={{ width: "100%", height: '200%' }}
+            >
+              {snackbarMessage}
+            </Alert>
+          </Snackbar>
         </Grid>
       </Grid>
     </>
