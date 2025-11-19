@@ -142,3 +142,19 @@ export async function getAllPoleEspaceTravail(token: string): Promise<EspaceTrav
 
   return await response.json();
 }
+
+export const deleteEspaceTravail = async (id: number, token: string) => {
+  const response = await fetch(`${ESPACE_TRAVAIL_URL}/supprimerEspaceTravail/${id}`, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de la suppression");
+  }
+
+  return response.json();
+};

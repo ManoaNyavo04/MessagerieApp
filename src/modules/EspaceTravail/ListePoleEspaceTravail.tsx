@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { EspaceTravailWithPole, getAllPoleEspaceTravail } from './EspaceTravailService';
-import { Button, Grid, IconButton, Menu, MenuItem, Paper} from '@mui/material';
+import { deleteEspaceTravail, EspaceTravailWithPole, getAllPoleEspaceTravail } from './EspaceTravailService';
+import { Alert, Button, Grid, IconButton, Menu, MenuItem, Paper, Snackbar } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AddIcon from '@mui/icons-material/Add';
 import GenericList from '../shared/components/GenericList';
@@ -14,7 +14,11 @@ const ListePoleEspaceTravail = ({ onClose }: ListePoleEspaceTravailProps) => {
     const [openForm, setOpenForm] = useState(false);
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedUser, setSelectedUser] = useState<EspaceTravailWithPole | null>(null);
+    const [selectedPole, setSelectedPole] = useState<EspaceTravailWithPole | null>(null);
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
     const viewPole = (id: number) => {
         const pole = poles.find(u => u.idEspaceTravail === id);
@@ -47,7 +51,7 @@ const ListePoleEspaceTravail = ({ onClose }: ListePoleEspaceTravailProps) => {
 
     const handleMenuClick = (event: React.MouseEvent<HTMLElement>, user: EspaceTravailWithPole) => {
         setAnchorEl(event.currentTarget);
-        setSelectedUser(user);
+        setSelectedPole(user);
     };
 
     const handleMenuClose = () => {
@@ -60,8 +64,40 @@ const ListePoleEspaceTravail = ({ onClose }: ListePoleEspaceTravailProps) => {
         handleMenuClose();
     };
 
-    const handleDelete = () => {
-        console.log("🗑️ Supprimer utilisateur :", selectedUser);
+    const handleDelete = async () => {
+        console.log("🗑️ Supprimer utilisateur :", selectedPole);
+        if (!selectedPole) return;
+
+        const confirmDel = window.confirm("Voulez-vous vraiment supprimer cet espace ?");
+        if (!confirmDel) return;
+
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                console.error("Token manquant");
+                return;
+            }
+
+            // 🔥 Appel API
+            await deleteEspaceTravail(selectedPole.idEspaceTravail, token);
+
+            // 🆕 Mise à jour UI (sans recharger toute la page)
+            setPoles(prev => prev.filter(p => p.idEspaceTravail !== selectedPole.idEspaceTravail));
+
+            setSnackbarMessage("✅ Espace de travail créé avec succès !");
+            setSnackbarSeverity("success");
+            setSnackbarOpen(true);
+
+            setTimeout(() => {
+                onClose?.();
+            }, 1000);
+
+            console.log("Espace supprimé avec succès");
+
+        } catch (err) {
+            console.error("Erreur suppression:", err);
+        }
+
         handleMenuClose();
     };
 
@@ -84,7 +120,7 @@ const ListePoleEspaceTravail = ({ onClose }: ListePoleEspaceTravailProps) => {
 
     const columns = [
         actionColumn,
-        { field: "nom", headerName: "Pôle", width: 150, sortable: true },
+        { field: "nom", headerName: "Espace de travail", width: 150, sortable: true },
         { field: "pole", headerName: "Pôle", width: 250, sortable: true },
 
     ];
@@ -120,11 +156,27 @@ const ListePoleEspaceTravail = ({ onClose }: ListePoleEspaceTravailProps) => {
                             open={Boolean(anchorEl)}
                             onClose={handleMenuClose}
                         >
-                            <MenuItem onClick={handleEdit}>Modifier</MenuItem>
                             <MenuItem onClick={handleDelete}>Supprimer</MenuItem>
                         </Menu>
 
                     </Paper>
+
+                    <Snackbar
+                        open={snackbarOpen}
+                        autoHideDuration={3000}
+                        onClose={() => setSnackbarOpen(false)}
+                        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                    >
+                        <Alert
+                            onClose={() => setSnackbarOpen(false)}
+                            severity={snackbarSeverity}
+                            variant="filled"
+                            sx={{ width: "100%" }}
+                        >
+                            {snackbarMessage}
+                        </Alert>
+                    </Snackbar>
+
                 </Grid>
             </Grid>
         </>

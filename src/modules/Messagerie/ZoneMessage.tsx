@@ -179,66 +179,6 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
 
   const connection = useSignalR();
-  /*useEffect(() => {
-    if (!connection || connection.state !== HubConnectionState.Connected || !currentDiscussion) {
-      return;
-    }
-
-    const markAsRead = async () => {
-      if (!currentDiscussion) return;
-
-      try {
-        await markMessagesAsRead(token, currentDiscussion.id, currentDiscussion.type);
-        console.log("📬 Messages marqués comme lus (depuis ZoneMessage)");
-      } catch (error) {
-        console.error("❌ Erreur marquage messages lus :", error);
-      }
-    };
-
-    const discussionGroupName = `discussion_${currentDiscussion.id}`;
-    connection.invoke("JoinGroup", discussionGroupName)
-      .then(() => console.log(`✅ Rejoint ${discussionGroupName}`))
-      .catch(err => console.error("❌ Erreur JoinGroup :", err));
-
-    // 📩 Messages entrants
-    const handler = (msg: any) => {
-      setMessages(prev => {
-        if (prev.some(m => m.id_message === msg.id_message)) return prev;
-        return [...prev, msg];
-      });
-    };
-
-    // 👁️ Notification de lecture
-    const handleMessagesRead = ({ discussionId, userId }: { discussionId: number, userId: number }) => {
-      if (discussionId !== currentDiscussion.id) return;
-
-      console.log("🔁 Lecture reçue via SignalR", discussionId, userId);
-
-      setMessages(prev =>
-        prev.map(msg => {
-          if (
-            msg.id_expediteur === currentUser.id &&
-            msg.id_discussion === currentDiscussion.id
-          ) {
-            return { ...msg, est_lu: true };
-          }
-          return msg;
-        })
-      );
-
-    };
-
-
-    markAsRead();
-
-    connection.on("ReceiveMessage", handler);
-    connection.on("MessagesRead", handleMessagesRead);
-
-    return () => {
-      connection.off("ReceiveMessage", handler);
-      connection.off("MessagesRead", handleMessagesRead);
-    };
-  }, [connection, currentDiscussion, currentUser]);*/
 
   useEffect(() => {
     if (!connection || connection.state !== HubConnectionState.Connected || !currentDiscussion) {

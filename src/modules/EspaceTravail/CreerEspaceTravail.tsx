@@ -19,6 +19,8 @@ const CreerEspaceTravail: React.FC<Props> = ({ open, onClose, onGroupCreated, to
     const [pole, setPole] = useState<any[]>([]);
     const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
     const [selectedPole, setSelectedPole] = useState<any | null>(null);
+    const [loading, setLoading] = useState(false);
+
 
     // Snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -62,25 +64,23 @@ const CreerEspaceTravail: React.FC<Props> = ({ open, onClose, onGroupCreated, to
     };
 
     const handleCreateEspaceTravail = async () => {
-        console.log("Création du groupe avec les utilisateurs :", selectedUserIds);
-        console.log("Nom du groupe :", espaceName);
-
         if (!selectedPole) {
-            setSnackbarMessage("⚠️ Veuillez choisir un rôle.");
+            setSnackbarMessage("⚠️ Veuillez choisir un pôle.");
             setSnackbarSeverity("error");
             setSnackbarOpen(true);
             return;
         }
+
+        setLoading(true); // démarrer le loading
+
         try {
             const payload = {
                 nom: espaceName,
-                id_pole: selectedPole?.id_pole ?? null, // À modifier selon le contexte
-                utilisateurs: selectedUserIds // ⚠️ ne pas inclure l’utilisateur connecté ici
+                id_pole: selectedPole?.id_pole ?? null,
+                utilisateurs: selectedUserIds
             };
 
             const result = await createNewEspaceTravail(token, payload);
-
-            console.log("Résultat création groupe :", result);
 
             setSnackbarMessage("✅ Espace de travail créé avec succès !");
             setSnackbarSeverity("success");
@@ -91,15 +91,16 @@ const CreerEspaceTravail: React.FC<Props> = ({ open, onClose, onGroupCreated, to
                 onGroupCreated?.();
             }, 1000);
 
-            // handleClose();
         } catch (error) {
-            
-            console.error('Erreur lors de la création du groupe :', error);
-            setSnackbarMessage("❌ Erreur lors de l’ajout : " + (error));
+            console.error("Erreur création groupe :", error);
+            setSnackbarMessage("❌ Erreur lors de l’ajout : " + error);
             setSnackbarSeverity("error");
             setSnackbarOpen(true);
+        } finally {
+            setLoading(false); // arrêter le loading
         }
     };
+
 
     const handleClose = () => {
         setStep(1);
@@ -178,10 +179,11 @@ const CreerEspaceTravail: React.FC<Props> = ({ open, onClose, onGroupCreated, to
                                 <Button
                                     variant="contained"
                                     onClick={handleCreateEspaceTravail}
-                                    disabled={!espaceName || !selectedPole}
+                                    disabled={!espaceName || !selectedPole || loading}
                                 >
-                                    Créer
+                                    {loading ? "Loading..." : "Créer"}
                                 </Button>
+
                             </Box>
                         </>
                     )}
