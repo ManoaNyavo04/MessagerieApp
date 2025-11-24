@@ -1,4 +1,4 @@
-import { Box, IconButton, Paper, Typography } from '@mui/material';
+import { Box, IconButton, Paper, Snackbar, Typography } from '@mui/material';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 import Picker from '@emoji-mart/react';
@@ -24,8 +24,9 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import DescriptionIcon from '@mui/icons-material/Description';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import DownloadIcon from '@mui/icons-material/Download';
 import { baseUrl } from '../../URL/Url';
-import { envoyerPieceJointe } from '../PieceJoint/PieceJointService';
+import { downloadPieceJointe, envoyerPieceJointe } from '../PieceJoint/PieceJointService';
 
 
 
@@ -46,6 +47,9 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   const [message, setMessage] = useState<string>('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+
 
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -446,10 +450,20 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setPendingFile(file); // juste stocker pour aperçu
+    if (!file) return;
+
+    const maxSize = 25 * 1024 * 1024; // 25 Mo en bytes
+
+    if (file.size > maxSize) {
+      setSnackbarMessage(
+        `❌ Fichier trop lourd (${(file.size / 1024 / 1024).toFixed(1)} Mo). Limite : 25 Mo.`
+      );
+      setSnackbarOpen(true);
+      return;
     }
+    setPendingFile(file);
   };
+
 
   const getFileIcon = (filename: string) => {
     const ext = filename.split('.').pop()?.toLowerCase();
@@ -467,9 +481,17 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     }
   };
 
+  const handleDownload = async (id: any) => {
+    try {
+      await downloadPieceJointe(id, token);
+    } catch (err) {
+      console.error("Erreur download :", err);
+    }
+  };
+
 
   return (
-    <Paper sx={{
+    <><Paper sx={{
       p: 2,
 
       height: '80vh',
@@ -505,8 +527,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
               open={openModal}
               handleClose={handleCloseModal}
               idGroupe={currentDiscussion.id}
-              token={token}
-            />
+              token={token} />
           </>
         )}
       </Box>
@@ -604,7 +625,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                   >
                     {/* Contenu ou pièce jointe */}
                     {msg.piece_jointe ? (
-                      /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(msg.piece_jointe) ? (
+                      /\.(png|jpg|jpeg|gif|bmp|webp|svg)$/i.test(msg.piece_jointe) ? (
                         <img
                           src={`${baseUrl}/Uploads/${msg.piece_jointe}`}
                           alt="Pièce jointe"
@@ -614,10 +635,9 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                             cursor: "pointer",
                             boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
                           }}
-                          onClick={() => window.open(`${baseUrl}/Uploads/${msg.piece_jointe}`, "_blank")}
-                        />
+                          onClick={() => window.open(`${baseUrl}/Uploads/${msg.piece_jointe}`, "_blank")} />
                       ) : (
-                        <a
+                        <><a
                           href={`${baseUrl}/Uploads/${msg.piece_jointe}`}
                           // target="_blank"
                           rel="noopener noreferrer"
@@ -635,12 +655,19 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                         >
                           {getFileIcon(msg.piece_jointe)}
                           {msg.nom_piece_jointe || msg.piece_jointe}
+
                         </a>
+                          <IconButton onClick={() => handleDownload(msg.id_piece_jointe)}>
+                            <DownloadIcon />
+                          </IconButton></>
+
                       )
+
                     ) : (
                       <Typography>{msg.contenu}</Typography>
 
                     )}
+
 
                     <Typography
                       variant="caption"
@@ -695,10 +722,10 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
         <input
           type="file"
+          accept="*"
           id="fileInput"
           style={{ display: 'none' }}
-          onChange={handleFileSelect}
-        />
+          onChange={handleFileSelect} />
 
         <IconButton onClick={() => document.getElementById('fileInput')?.click()}>
           <AttachFileIcon />
@@ -710,8 +737,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
           placeholder="Écrire un message..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #ccc' }}
-        />
+          style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #ccc' }} />
         {pendingFile && (
           <Box
             sx={{
@@ -730,8 +756,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
               <img
                 src={URL.createObjectURL(pendingFile)}
                 alt="Aperçu"
-                style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }}
-              />
+                style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }} />
             ) : (
               <AttachFileIcon />
             )}
@@ -751,6 +776,13 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
       </Box>
 
     </Paper>
+    <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        message={snackbarMessage} />
+        </>
   );
 
 }
