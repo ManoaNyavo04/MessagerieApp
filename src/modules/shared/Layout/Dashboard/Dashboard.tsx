@@ -125,8 +125,8 @@ const defaultTheme = createTheme({
     MuiToolbar: {
       styleOverrides: {
         root: {
-          // backgroundColor: '#1d2f53',
-          backgroundColor: 'white',
+           backgroundColor: '#000000c9',
+         // backgroundColor: 'white',
         },
       },
     },
