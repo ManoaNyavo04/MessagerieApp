@@ -38,6 +38,7 @@ const Login = () => {
                 profilUtilisateur: {
                     id_utilisateur: result.profilUtilisateur.id,
                     id: result.profilUtilisateur.id,
+                    
                     nom: result.profilUtilisateur.nom,
                     prenom: result.profilUtilisateur.prenom,
                     matricule: result.profilUtilisateur.matricule,
@@ -52,7 +53,13 @@ const Login = () => {
             localStorage.setItem("profilUtilisateur", JSON.stringify(result.profilUtilisateur)); // <-- Ajoute ceci
 
             // ✅ Enregistrer dans Redux
-            dispatch(loginSuccess(formattedResult));
+            dispatch(loginSuccess({ 
+                token: result.token, 
+                profilUtilisateur: {
+                    ...result.profilUtilisateur,
+                    id_utilisateur: result.profilUtilisateur.id
+                }
+            }));
 
             setMessage("Connexion réussie !");
             setAlertType("success");

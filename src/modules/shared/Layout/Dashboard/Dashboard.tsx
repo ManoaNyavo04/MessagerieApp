@@ -22,6 +22,8 @@ import AdminMenu from './AdminMenu';
 import BtnLogout from './BtnLogout';
 import BasicBreadcrumbs from './BasicBreadcrumbs';
 import BreadcrumbManager from './BreadcrumbManager';
+import EspaceSelect from '../../../EspaceTravail/EspaceSelect';
+import { useState } from 'react';
 
 
 function Copyright(props: any) {
@@ -47,6 +49,7 @@ const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
 })<AppBarProps>(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
+  backgroundColor: '#1d2f54',
   transition: theme.transitions.create(['width', 'margin'], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -67,7 +70,7 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
       position: 'relative',
       whiteSpace: 'nowrap',
       width: drawerWidth,
-      backgroundColor: '#1d2f54',
+      backgroundColor: '#000000c9', //'#1d2f54', #000000c9, #04630770
       transition: theme.transitions.create('width', {
         easing: theme.transitions.easing.sharp,
         duration: theme.transitions.duration.enteringScreen,
@@ -109,7 +112,7 @@ const defaultTheme = createTheme({
 
   palette: {
     primary: {
-      main: '#1d2f53',
+      main: '#060a12', // #060a12, #3a3c3fff
     },
     warning: {
       main: '#f2000f'
@@ -179,13 +182,15 @@ export default function Dashboard() {
 
   const { profilUtilisateur } = useAppSelector((state) => state.auth);
   const isAdmin = profilUtilisateur?.id_role === 1; // ou "admin" si string
+  const [espaceActif, setEspaceActif] = useState<any | null>(null);
+  const token: string = localStorage.getItem("token") ?? "";
 
 
   return (
     <ThemeProvider theme={defaultTheme}>
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
-        <AppBar position="absolute" open={open}>
+        <AppBar position="absolute" open={open} sx ={{ backgroundColor: '#1d2f54 !important' }}>
           <Toolbar
             sx={{
               pr: '24px', // keep right padding when drawer closed
@@ -198,15 +203,16 @@ export default function Dashboard() {
               aria-label="open drawer"
               onClick={toggleDrawer}
               sx={{
-                marginRight: '36px',
+                // marginRight: '36px',
+                marginLeft: '-55px',
                 ...(open && { display: 'none' }),
               }}
             >
-              <img
+              {/* <img
                 src="/logo2.png"
                 alt="Logo2"
                 style={{ height: '50px', marginRight: '10%', textAlign: 'center' }}
-              />
+              /> */}
               {/* <MenuIcon /> */}
 
             </IconButton>
@@ -230,7 +236,8 @@ export default function Dashboard() {
                 fontFamily: "Russo one", marginLeft: 3, marginTop: 1
               }}
             >
-              LALAMBY : messagerie
+              {/* LALAMBY : messagerie */}
+              <EspaceSelect token={token} onEspaceChange={setEspaceActif} />
             </Typography>
             {/* <NotifIcon /> */}
             <BtnLogout />
@@ -292,8 +299,8 @@ export default function Dashboard() {
             <Box mb={1}>
               {/* {profilUtilisateur?.id_role} */}
               {/* {profilUtilisateur?.id_utilisateur} */}
-              <BreadcrumbManager />
-              <BasicBreadcrumbs />
+              {/* <BreadcrumbManager /> */}
+              {/* <BasicBreadcrumbs /> */}
             </Box>
             <Outlet />
             <Copyright sx={{ pt: 4 }} />

@@ -17,6 +17,8 @@ import MessageriePage from './modules/Messagerie/MessageriePage';
 import { useSelector } from 'react-redux';
 import { RootState } from './modules/shared/Store/store';
 import { SignalRProvider } from './contexts/SignalRContext';
+import ListeMembre from './modules/EspaceTravail/ListeMembre';
+import ListePoleEspaceTravail from './modules/EspaceTravail/ListePoleEspaceTravail';
 
 
 
@@ -46,7 +48,8 @@ function App() {
           <Route element={<Dashboard />}>
             {/* <Route path="/messagerie" element={<Messagerie />} /> */}
             <Route path="/messagerie" element={<MessageriePage token={token || ''} />} />
-            
+            <Route path="/membre-espace-travail" element={<ListeMembre />} />
+            <Route path="/espace-travail" element={<ListePoleEspaceTravail />} />
           </Route>
         </Route>
 

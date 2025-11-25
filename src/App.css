@@ -140,13 +140,31 @@ li {
     }
 }
 
-.MuiDataGrid-columnHeaders, .MuiDataGrid-columnHeaders * {
-  background-color:#1d2f53 !important;
-  color: white !important;
-  font-weight: bold !important;
+.MuiDataGrid-columnHeaders {
+  background-color: black; /* gris clair doux */
+  color: #1f2937; /* texte sombre mais pas noir */
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #e5e7eb;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* légère ombre */
 }
+
 .MuiDataGrid-columnHeaderTitle {
-  font-weight: bold!important;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: none; /* pas de majuscules forcées */
+}
+
+.MuiDataGrid-columnHeader, 
+.MuiDataGrid-columnHeader:focus {
+  outline: none; /* supprime la bordure de focus agressive */
+}
+
+
+.MuiToolbar-root.MuiToolbar-gutters.MuiToolbar-regular.css-1818iyp-MuiToolbar-root {
+    background:  #000000c9 !important; /*#1d2f54, #000000c9, #04630770*/
 }
 
 
@@ -154,6 +172,10 @@ li {
   /* color: black !important; */
   font-weight: bold !important;
   ;
+}
+
+.MuiBox-root.css-1qm1lh {
+    height: 20px;
 }
 
 .titrePage {

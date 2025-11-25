@@ -2,6 +2,7 @@ import { ALL_USER_URL } from "../../URL/Url";
 
 // Interface représentant un utilisateur
 export interface Utilisateur {
+  role: string;
   id_utilisateur: number;
   id: number;
   nom: string;
@@ -84,7 +85,9 @@ export async function addUtilisateurService(utilisateur: UtilisateurDto, token: 
 }
 
 export async function searchUser(token: string, searchTerm: string) {
+  console.log("🔍 Token envoyé :", token); 
   const response = await fetch(`${ALL_USER_URL}/searchUser?searchTerm=${encodeURIComponent(searchTerm)}`, {
+    method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json"
@@ -96,5 +99,45 @@ export async function searchUser(token: string, searchTerm: string) {
   }
 
   return response.json();
+}
+
+export async function searchAllUser(token: string, searchTerm: string) {
+  console.log("🔍 Token envoyé :", token); 
+  const response = await fetch(`${ALL_USER_URL}/searchAllUser?searchTerm=${encodeURIComponent(searchTerm)}`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de la recherche d'utilisateur");
+  }
+
+  return response.json();
+}
+
+
+export async function rafraichir(token: string) {
+  try {
+    const response = await fetch(`${ALL_USER_URL}/rafraichir`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorMsg = await response.text();
+      throw new Error(errorMsg || `Erreur ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error("Erreur lors de l'ajout de l'utilisateur :", error);
+    throw error.message || "Erreur inconnue";
+  }
 }
 

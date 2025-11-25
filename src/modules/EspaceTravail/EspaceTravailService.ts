@@ -1,0 +1,160 @@
+import { ESPACE_TRAVAIL_URL } from "../../URL/Url";
+
+export interface EspaceTravail {
+  id_espace_travail: number;
+  nom: string;
+}
+
+export interface EspaceTravailMembre {
+  idUtilisateur: number;
+  matricule: string;
+  nom: string;
+  prenom: string;
+  idEspaceTravail: number;
+  espaceTravail: string;
+  idPole: number;
+}
+
+export interface NouveauEspaceTravailDTO {
+  nom: string;
+  id_pole: number;
+  utilisateurs: number[];
+}
+
+export interface UtilisateurEspaceTravail {
+  id_utilisateur: number;
+  id_espace_travail: number;
+}
+
+export interface EspaceTravailWithPole {
+  idEspaceTravail: 1,
+  nom: string,
+  idPole: number,
+  idAdmin: number,
+  pole: string
+}
+
+export async function getEspacesByUtilisateurId(token: string) {
+  const response = await fetch(`${ESPACE_TRAVAIL_URL}/getEspacesByUtilisateurId`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`, // ✅ ajout du token
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de la récupération des espaces de travail");
+  }
+
+  return await response.json();
+}
+
+export async function getMembreEspaceTravail(token: string): Promise<EspaceTravailMembre[]> {
+  const response = await fetch(`${ESPACE_TRAVAIL_URL}/getMembreEspacesTravail`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`, // ✅ ajout du token
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de la récupération des membres des espaces de travail");
+  }
+
+  return await response.json();
+}
+
+export async function changerEspace(token: string, nouvelEspace: number) {
+  const response = await fetch(`${ESPACE_TRAVAIL_URL}/changerEspace`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(nouvelEspace),
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors du changement d’espace de travail");
+  }
+
+  return await response.json(); // contient { token, profilUtilisateur }
+}
+
+export async function getAllEspaceTravailService(token: string) {
+  const response = await fetch(`${ESPACE_TRAVAIL_URL}/getAllEspaceTravail`, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+  if (!response.ok) throw new Error("Erreur de chargement des espaces");
+  return await response.json();
+}
+
+export async function affecterUtilisateurService(token: string, data: UtilisateurEspaceTravail) {
+  const response = await fetch(`${ESPACE_TRAVAIL_URL}/affecterUtilisateurVersEspaceTravail`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(err || "Erreur d'affectation");
+  }
+  return await response.json();
+}
+
+export async function createNewEspaceTravail(token: string, espace: NouveauEspaceTravailDTO) {
+  const response = await fetch(`${ESPACE_TRAVAIL_URL}/creerEspaceTravail`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(espace)
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors du démarrage de la discussion");
+  }
+
+  return response.json(); // Retourne l'objet DiscussionModel
+}
+
+export async function getAllPoleEspaceTravail(token: string): Promise<EspaceTravailWithPole[]> {
+  const response = await fetch(`${ESPACE_TRAVAIL_URL}/getAllPoleEspaceTravail`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`, // ✅ ajout du token
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de la récupération des espaces de travail");
+  }
+
+  return await response.json();
+}
+
+export const deleteEspaceTravail = async (id: number, token: string) => {
+  const response = await fetch(`${ESPACE_TRAVAIL_URL}/supprimerEspaceTravail/${id}`, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de la suppression");
+  }
+
+  return response.json();
+};
