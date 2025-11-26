@@ -125,8 +125,7 @@ const defaultTheme = createTheme({
     MuiToolbar: {
       styleOverrides: {
         root: {
-           backgroundColor: '#000000c9',
-         // backgroundColor: 'white',
+          backgroundColor: '#000000c9',
         },
       },
     },
@@ -190,7 +189,7 @@ export default function Dashboard() {
     <ThemeProvider theme={defaultTheme}>
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
-        <AppBar position="absolute" open={open} sx ={{ backgroundColor: '#1d2f54 !important' }}>
+        <AppBar position="absolute" open={open} >
           <Toolbar
             sx={{
               pr: '24px', // keep right padding when drawer closed
