@@ -21,6 +21,14 @@ export interface UtilisateurDto {
   role: string
 }
 
+export interface UpdateUtilisateurDto {
+  nom: string;
+  prenom: string;
+  matricule: string;
+  id_role: number;
+}
+
+
 type ApiUtilisateur = Omit<Utilisateur, 'id'> & { id_utilisateur: number };
 
 // Fonction pour récupérer tous les utilisateurs
@@ -61,7 +69,7 @@ export async function getUtilisateur(id: number, token: string) {
 
 }
 
-export async function addUtilisateurService(utilisateur: UtilisateurDto, token: string) {
+export async function addUtilisateurService(utilisateur: UpdateUtilisateurDto, token: string) {
   try {
     const response = await fetch(`${ALL_USER_URL}/addUtilisateur`, {
       method: "POST",
@@ -140,4 +148,22 @@ export async function rafraichir(token: string) {
     throw error.message || "Erreur inconnue";
   }
 }
+
+export async function updateUtilisateurService(id: number, data: UpdateUtilisateurDto, token: string) {
+  const res = await fetch(`${ALL_USER_URL}/modifierUtilisateur/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (!res.ok) {
+    throw new Error("Erreur API update");
+  }
+
+  return res.json();
+}
+
 

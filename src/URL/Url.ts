@@ -1,4 +1,4 @@
-export const PROD = true;
+export const PROD = false;
 
 export const baseUrl = PROD ? "http://10.5.100.7:5040" : "http://localhost:5032";
 

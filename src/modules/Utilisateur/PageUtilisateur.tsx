@@ -72,6 +72,7 @@ const PageUtilisateur = ({ onClose }: PageUtilisateurProps) => {
     handleMenuClose();
   };
 
+
   const handleDelete = () => {
     console.log("🗑️ Supprimer utilisateur :", selectedUser);
     handleMenuClose();
@@ -150,43 +151,43 @@ const PageUtilisateur = ({ onClose }: PageUtilisateurProps) => {
 
 
   const columns = [
-  actionColumn,
-  {
-    field: "role",
-    headerName: "Rôle",
-    width: 120,
-    renderCell: (params: any) => {
-      if (params.value === "admin") {
-        return (
-          <Tooltip title="Administrateur">
-            <Chip
-              icon={<AdminPanelSettingsIcon style={{ color: 'f87171', fontSize: 18 }} />}
+    actionColumn,
+    {
+      field: "role",
+      headerName: "Rôle",
+      width: 120,
+      renderCell: (params: any) => {
+        if (params.value === "admin") {
+          return (
+            <Tooltip title="Administrateur">
+              <Chip
+                icon={<AdminPanelSettingsIcon style={{ color: 'f87171', fontSize: 18 }} />}
               // label="Admin"
               // size="small"
               // sx={{ bgcolor: '#f87171', color: 'white', fontWeight: 'bold' }}
-            />
-          </Tooltip>
-        )
-      } else {
-        return (
-          <Tooltip title="Utilisateur">
-            <Chip
-              icon={<PersonIcon style={{ color: 'purple', fontSize: 20 }} />}
-              // label="User"
-              // size="small"
-              sx={{ color: 'purple', fontWeight: 'bold' }}
-            />
-          </Tooltip>
-        )
+              />
+            </Tooltip>
+          )
+        } else {
+          return (
+            <Tooltip title="Utilisateur">
+              <Chip
+                icon={<PersonIcon style={{ color: 'purple', fontSize: 20 }} />}
+                // label="User"
+                // size="small"
+                sx={{ color: 'purple', fontWeight: 'bold' }}
+              />
+            </Tooltip>
+          )
+        }
       }
-    }
-  },
-  
-  { field: "matricule", headerName: "Matricule", width: 150, sortable: true  },
-  { field: "nom", headerName: "Nom", width: 150, sortable: true  },
-  { field: "prenom", headerName: "Prénom", width: 150, sortable: true  },
-  
-];
+    },
+
+    { field: "matricule", headerName: "Matricule", width: 150, sortable: true },
+    { field: "nom", headerName: "Nom", width: 150, sortable: true },
+    { field: "prenom", headerName: "Prénom", width: 150, sortable: true },
+
+  ];
 
 
   const handleOpenForm = () => setOpenForm(true);
@@ -208,7 +209,7 @@ const PageUtilisateur = ({ onClose }: PageUtilisateurProps) => {
               <>
                 {/* <FormArticle executable={actualiserDonnees} /> */}
                 <Button size="large" sx={{ border: 'none' }} variant='outlined' onClick={handleOpenForm}>
-                 <AddIcon />
+                  <AddIcon />
                 </Button>
                 <Button size="large" sx={{ border: 'none' }} variant='outlined' onClick={refreshData}><RefreshIcon /></Button>
               </>
@@ -232,7 +233,8 @@ const PageUtilisateur = ({ onClose }: PageUtilisateurProps) => {
               <MenuItem onClick={handleOpenAffectation}>Affecter</MenuItem>
             </Menu>
 
-            <FormUtilisateur open={openForm} onClose={handleCloseForm} />
+            <FormUtilisateur open={openForm} onClose={handleCloseForm} utilisateur={selectedUser}   // ⬅️ important
+              onUpdated={refreshData} />
             <FormAffectationUtilisateur
               open={openAffectation}
               onClose={handleCloseAffectation}

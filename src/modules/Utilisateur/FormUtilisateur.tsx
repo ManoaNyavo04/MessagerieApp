@@ -15,7 +15,7 @@ import {
 import { Cancel } from "@mui/icons-material";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons";
-import { addUtilisateurService, Utilisateur, UtilisateurDto } from "./UtilisateurService";
+import { addUtilisateurService, UpdateUtilisateurDto, updateUtilisateurService, Utilisateur, UtilisateurDto } from "./UtilisateurService";
 import { getAllRolesService, Role } from "../Role/RoleService";
 
 interface FormUtilisateurProps {
@@ -39,6 +39,18 @@ const FormUtilisateur = ({ open, onClose, utilisateur, onUpdated }: FormUtilisat
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
 
   const token = localStorage.getItem("token");
+
+  const showSuccess = (message: string) => {
+    setSnackbarSeverity("success");
+    setSnackbarMessage(message);
+    setSnackbarOpen(true);
+  };
+
+  const showError = (message: string) => {
+    setSnackbarSeverity("error");
+    setSnackbarMessage(message);
+    setSnackbarOpen(true);
+  };
 
   // 🔹 Charger les rôles et remplir les champs si édition
   useEffect(() => {
@@ -70,50 +82,53 @@ const FormUtilisateur = ({ open, onClose, utilisateur, onUpdated }: FormUtilisat
     e.preventDefault();
 
     if (!selectedRole) {
-      setSnackbarMessage("⚠️ Veuillez choisir un rôle.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      showError("Veuillez choisir un rôle.");
       return;
     }
 
     if (!token) {
-      setSnackbarMessage("⚠️ Token non trouvé.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      showError("Token non trouvé.");
       return;
     }
 
-    const utilisateurData: UtilisateurDto = {
-      id_utilisateur: utilisateur?.id_utilisateur || 0,
+    const payloadUpdate: UpdateUtilisateurDto = {
       nom,
       prenom,
       matricule,
-      mdp: "",
       id_role: selectedRole.id_role,
-      role: selectedRole.role,
     };
 
     setPending(true);
 
     try {
-      await addUtilisateurService(utilisateurData, token);
+      if (utilisateur) {
+        // 🔵 MODE UPDATE
+        await updateUtilisateurService(utilisateur.id_utilisateur, payloadUpdate, token);
 
-      setSnackbarMessage("✅ Utilisateur ajouté avec succès !");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
+        showSuccess("Utilisateur modifié avec succès !");
+      } else {
+        // 🟢 MODE AJOUT
+        await addUtilisateurService(payloadUpdate, token);
+
+        showSuccess("Utilisateur ajouté avec succès !");
+      }
 
       setTimeout(() => {
         onClose();
-        onUpdated?.();
-      }, 1000);
+        window.location.reload();
+        // onUpdated?.();
+      }, 800);
+
     } catch (error: any) {
-      setSnackbarMessage("❌ Erreur lors de l’ajout : " + (error.message || error));
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      showError("Erreur : " + (error.message || error));
     } finally {
       setPending(false);
     }
   };
+
+  
+
+
 
   return (
     <Modal open={open} onClose={onClose}>
