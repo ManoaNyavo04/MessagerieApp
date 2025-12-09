@@ -1,4 +1,4 @@
-import { Box, IconButton, Paper, Snackbar, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, Snackbar, TextField, Typography } from '@mui/material';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 import Picker from '@emoji-mart/react';
@@ -10,10 +10,11 @@ import {
   HubConnectionBuilder,
   HubConnectionState
 } from '@microsoft/signalr';
-import { getMessages, markMessagesAsRead } from './MesDiscussion';
+import { getMessages, markMessagesAsRead, modifierMessage } from './MesDiscussion';
 import { useSignalR } from '../../contexts/SignalRContext';
 
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import EditIcon from '@mui/icons-material/Edit';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListeMembre from '../Groupe/ListeMembre';
@@ -71,6 +72,16 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
   const handleCloseModal = () => {
     setOpenModal(false);
+  };
+
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [messageToEdit, setMessageToEdit] = useState<any | null>(null);
+  const [editContent, setEditContent] = useState("");
+
+  const ouvrirModalEdit = (msg: any) => {
+    setMessageToEdit(msg);
+    setEditContent(msg.contenu);
+    setEditModalOpen(true);
   };
 
   // Trouver l'index du premier message non lu (envoyé par les autres)
@@ -153,18 +164,6 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
       chemin: m.chemin
     })));
   }, [messages]);
-
-
-
-
-  /*const addEmoji = (emoji: any) => {
-    setMessages((prev) => [...prev, {
-    
-      isMine: true,
-      texte: emoji.native || emoji?.emoji,
-      date: new Date().toISOString()
-    }]);
-  };*/
 
   const addEmoji = (emoji: any) => {
     setMessage(prev => prev + (emoji.native || emoji?.emoji));
@@ -288,105 +287,6 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     };
   }, [connection]);
 
-
-
-
-  /*const envoyerMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim() || !connection) return;
-
-    const isPrive = currentDiscussion?.type === 'prive';
-    const isGroupe = currentDiscussion?.type === 'groupe';
-    const idDest = isPrive ? currentDiscussion?.id : null;
-    const idGroupe = isGroupe ? currentDiscussion?.id : null;
-    const groupName = currentDiscussion?.nom || "";
-    console.log("nom : " + groupName);
-
-    // ✅ Affiche directement côté client
-    const tempMsg = {
-      id_expediteur: currentUser.id,
-      expediteur_nom: currentUser.nom,
-      contenu: message,
-      date_envoie: new Date().toISOString()
-    };
-    // setMessages(prev => [...prev, tempMsg]);
-
-    setMessage("");
-
-    try {
-      await connection.invoke(
-        "SendMessageToDiscussion",
-        currentUser.id,
-        idDest,
-        idGroupe,
-        tempMsg.contenu,
-        groupName
-      );
-      /*if (Notification.permission === "granted") {
-        const notif = new Notification(`💬 ${tempMsg.expediteur_nom}`, {
-          body: tempMsg.contenu,
-          icon: "/logo2.png",
-          requireInteraction: true,
-        });
-
-        notif.onclick = () => {
-          window.focus();
-          notif.close();
-        };
-
-        // Optionnel : jouer un son
-        // const audio = new Audio("/sounds/notification.mp3");
-        // audio.play();
-      }
-
-    } catch (err) {
-      console.error("❌ Erreur envoi message", err);
-    }
-  };*/
-
-  /*const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !connection) return;
-
-    const isPrive = currentDiscussion?.type === 'prive';
-    const isGroupe = currentDiscussion?.type === 'groupe';
-    const idDest = isPrive ? currentDiscussion?.id : null;
-    const idGroupe = isGroupe ? currentDiscussion?.id : null;
-    const groupName = currentDiscussion?.nom || "";
-
-    // 1. Créer un message vide
-    const res = await connection.invoke(
-      "SendMessageToDiscussion",
-      currentUser.id,
-      idDest,
-      idGroupe,
-      "", // contenu vide
-      groupName
-    );
-
-    if (!res || !res.id_message) {
-      toast.error("Erreur : réponse invalide du serveur.");
-      return;
-    }
-
-    // 2. Upload du fichier
-    const { chemin, nom } = await envoyerPieceJointe(file, res.id_message, token);
-
-    console.log("✅ Pièce jointe envoyée :", chemin, nom);
-
-    // 3. 🔁 Appelle SignalR pour mettre à jour
-    await connection.invoke(
-      "UpdateMessageWithFile",
-      res.id_message,
-      nom,
-      chemin,
-      idDest,
-      idGroupe,
-      groupName
-    );
-  };*/
-
-
   const envoyerMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() && !pendingFile) return; // empêcher message vide
@@ -489,6 +389,53 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     }
   };
 
+  const canEdit = (msg: any) => {
+    if (msg.id_expediteur !== currentUser.id) return false;
+    if (!msg.modifiable_jusqua) return false;
+
+    return new Date(msg.modifiable_jusqua) > new Date();
+  };
+
+  const handleSaveEdition = async () => {
+    // Sécurité : éviter d'accéder à messageToEdit si null
+    if (!messageToEdit) {
+      console.warn("Aucun message sélectionné pour l'édition.");
+      return;
+    }
+
+    const payload = {
+      id_message: messageToEdit.id_message,
+      contenu: editContent
+    };
+
+    try {
+      await modifierMessage(payload, token);
+
+      // On ferme le modal
+      setEditModalOpen(false);
+
+      // On met à jour localement
+      setMessages(prev =>
+        prev.map(m =>
+          m.id_message === messageToEdit.id_message
+            ? { ...m, contenu: editContent, date_modification: new Date() }
+            : m
+        )
+      );
+
+      // SignalR pour notifier les autres (si connection présente)
+      if (connection) {
+        connection.invoke("UpdateMessageContent", messageToEdit.id_message, editContent)
+          .catch(err => console.error("Erreur signalR UpdateMessageContent:", err));
+      }
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+
 
   return (
     <><Paper sx={{
@@ -559,6 +506,15 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
           const isFirstUnread = idx === firstUnreadIndex;
 
+          {
+            isMine && canEdit(msg) && (
+              <IconButton size="small" onClick={() => ouvrirModalEdit(msg)}>
+                <EditIcon fontSize="small" />
+              </IconButton>
+            )
+          }
+
+
           return (
             <React.Fragment key={msg.id_message || idx}>
               {/* Ligne de séparation "Nouveau" */}
@@ -595,8 +551,24 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                     flexDirection: 'column',
                     alignItems: isMine ? 'flex-end' : 'flex-start',
                     maxWidth: '70%',
+                    position: 'relative',
                   }}
                 >
+                  {/* Bouton modifier */}
+                  {isMine && canEdit(msg) && (
+                    <IconButton
+                      size="small"
+                      onClick={() => ouvrirModalEdit(msg)}
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                      }}
+                      title="Modifier le message"
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  )}
                   {/* Nom de l'expéditeur (groupe) */}
                   {currentDiscussion?.type === 'groupe' && !isMine && (
                     <Typography
@@ -606,6 +578,8 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                       {msg.nom_expediteur}
                     </Typography>
                   )}
+
+                  
 
                   <Box
                     sx={{
@@ -773,16 +747,33 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
         <IconButton type="submit" color="primary">
           <SendIcon />
         </IconButton>
+
+        <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)}>
+          <DialogTitle>Modifier message</DialogTitle>
+          <DialogContent>
+            <TextField
+              fullWidth
+              multiline
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditModalOpen(false)}>Annuler</Button>
+            <Button onClick={handleSaveEdition} variant="contained">Sauvegarder</Button>
+          </DialogActions>
+        </Dialog>
+
       </Box>
 
     </Paper>
-    <Snackbar
+      <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}
         onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         message={snackbarMessage} />
-        </>
+    </>
   );
 
 }

@@ -1,3 +1,4 @@
+import { data } from "react-router-dom";
 import { ALL_USER_URL } from "../../URL/Url";
 
 // Interface représentant un utilisateur
@@ -157,6 +158,22 @@ export async function updateUtilisateurService(id: number, data: UpdateUtilisate
       "Authorization": `Bearer ${token}`
     },
     body: JSON.stringify(data)
+  });
+
+  if (!res.ok) {
+    throw new Error("Erreur API update");
+  }
+
+  return res.json();
+}
+
+export async function supprimerUtilisateur(id: number, token: string) {
+  const res = await fetch(`${ALL_USER_URL}/supprimerUtilisateur/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
   });
 
   if (!res.ok) {

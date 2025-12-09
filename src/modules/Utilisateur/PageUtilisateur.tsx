@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { getAllUtilisateursService, rafraichir, Utilisateur } from './UtilisateurService';
+import { getAllUtilisateursService, rafraichir, supprimerUtilisateur, Utilisateur } from './UtilisateurService';
 import { Alert, Button, Chip, Grid, IconButton, Menu, MenuItem, Paper, Snackbar, Tooltip } from '@mui/material';
 import GenericList from '../shared/components/GenericList';
 import { FileOpen, MoreVert as MoreVertIcon, AdminPanelSettings as AdminPanelSettingsIcon, Person as PersonIcon, Refresh as RefreshIcon, Add as AddIcon } from '@mui/icons-material';
@@ -20,6 +20,18 @@ const PageUtilisateur = ({ onClose }: PageUtilisateurProps) => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
+
+  const showSuccess = (message: string) => {
+    setSnackbarSeverity("success");
+    setSnackbarMessage(message);
+    setSnackbarOpen(true);
+  };
+
+  const showError = (message: string) => {
+    setSnackbarSeverity("error");
+    setSnackbarMessage(message);
+    setSnackbarOpen(true);
+  };
 
 
 
@@ -73,10 +85,23 @@ const PageUtilisateur = ({ onClose }: PageUtilisateurProps) => {
   };
 
 
-  const handleDelete = () => {
-    console.log("🗑️ Supprimer utilisateur :", selectedUser);
-    handleMenuClose();
+  const handleDelete = async () => {
+    const token = localStorage.getItem("token");
+    if (selectedUser) {
+      await supprimerUtilisateur(selectedUser.id_utilisateur, token || "");
+      console.log("🗑️ Supprimer utilisateur :", selectedUser);
+
+      showSuccess("Utilisateur supprimé avec succès !");
+
+      setTimeout(() => {
+        onClose?.();
+        window.location.reload();
+        // onUpdated?.();
+      }, 800);
+      handleMenuClose();
+    }
   };
+
   const handleOpenAffectation = () => {
     if (selectedUser) setOpenAffectation(true);
     handleMenuClose();

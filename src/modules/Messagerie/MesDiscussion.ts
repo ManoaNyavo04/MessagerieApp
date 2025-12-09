@@ -1,4 +1,10 @@
+import { esES } from "@mui/material/locale";
 import { ALL_USER_URL, USER_DISCUSSION } from "../../URL/Url";
+
+export interface UpdateMessageDTO {
+  id_message: number;
+  contenu: string;
+}
 
 export async function getMesDiscussions(token: string): Promise<any[]> {
   try {
@@ -100,6 +106,26 @@ export async function searchUserGroup(token: string, searchTerm: string) {
   }
 
   return response.json();
+}
+
+export async function modifierMessage(UpdateMessageDTO: UpdateMessageDTO, token: string) {
+  const res = await fetch(`${USER_DISCUSSION}/modifier-message/${UpdateMessageDTO.id_message}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      id_message: UpdateMessageDTO.id_message,
+      contenu: UpdateMessageDTO.contenu
+    })
+  });
+
+  if (!res.ok) {
+    throw new Error("Erreur API update");
+  }
+
+  return res.json();
 }
 
 
