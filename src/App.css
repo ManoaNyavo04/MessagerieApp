@@ -194,3 +194,22 @@ li {
   background-color: #f0f0f0;
   transform: scale(1.1);
 }
+
+.highlight-message {
+  animation: highlightFade 2s ease;
+  background-color: rgba(255, 235, 59, 0.4);
+  border-radius: 8px;
+}
+
+@keyframes highlightFade {
+  0% {
+    background-color: rgba(255, 235, 59, 0.8);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+.mark {
+  background-color: yellow;
+  padding: 0;
+}

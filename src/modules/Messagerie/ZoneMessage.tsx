@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, Snackbar, TextField, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, Snackbar, TextField, Tooltip, Typography } from '@mui/material';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 import Picker from '@emoji-mart/react';
@@ -10,11 +10,12 @@ import {
   HubConnectionBuilder,
   HubConnectionState
 } from '@microsoft/signalr';
-import { getMessages, markMessagesAsRead, modifierMessage } from './MesDiscussion';
+import { deleteMessage, getMessages, markMessagesAsRead, modifierMessage } from './MesDiscussion';
 import { useSignalR } from '../../contexts/SignalRContext';
 
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListeMembre from '../Groupe/ListeMembre';
@@ -28,6 +29,7 @@ import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import DownloadIcon from '@mui/icons-material/Download';
 import { baseUrl } from '../../URL/Url';
 import { downloadPieceJointe, envoyerPieceJointe } from '../PieceJoint/PieceJointService';
+import RechercheMessage from './RechercheMessage';
 
 
 
@@ -50,6 +52,11 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [openRecherche, setOpenRecherche] = useState(false);
+  const messageRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
+
+
 
 
 
@@ -72,6 +79,15 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
   const handleCloseModal = () => {
     setOpenModal(false);
+  };
+
+  const handleOpenRecherche = () => {
+    setOpenRecherche(true);
+    handleMenuClose();
+  };
+
+  const handleCloseRecherche = () => {
+    setOpenRecherche(false);
   };
 
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -389,12 +405,57 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     }
   };
 
+  // const normalizeDate = (dateStr: string | null) => {
+  //   if (!dateStr) return null;
+
+  //   // Corrige format "YYYY-MM-DD HH:mm:ss"
+  //   // const normalized = dateStr.replace(" ", "T");
+  //   const normalized = dateStr.replace(" ", "T") + "Z"; // force UTC
+
+  //   const d = new Date(normalized);
+
+  //   if (isNaN(d.getTime())) return null;
+
+  //   return d;
+  // };
+
+
+
   const canEdit = (msg: any) => {
-    if (msg.id_expediteur !== currentUser.id) return false;
+    console.log("Vérifie si modifiable :", msg.modifiable_jusqua);
+
     if (!msg.modifiable_jusqua) return false;
 
-    return new Date(msg.modifiable_jusqua) > new Date();
+    const modifDate = new Date(msg.modifiable_jusqua);
+
+    if (isNaN(modifDate.getTime())) return false;
+
+    return modifDate.getTime() > Date.now();
   };
+
+  const handleDelete = async (id_message: number) => {
+    if (!window.confirm("Supprimer ce message ?")) return;
+
+    try {
+      await deleteMessage(id_message, token);
+
+      // 🔁 Mise à jour UI (soft delete)
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id_message === id_message
+            ? { ...m, id_status_msg: 5 }
+            : m
+        )
+      );
+    } catch (error) {
+      console.error(error);
+      alert("Erreur lors de la suppression");
+    }
+  };
+
+
+
+
 
   const handleSaveEdition = async () => {
     // Sécurité : éviter d'accéder à messageToEdit si null
@@ -405,6 +466,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
     const payload = {
       id_message: messageToEdit.id_message,
+      id_utilisateur: currentUser.id,
       contenu: editContent
     };
 
@@ -418,21 +480,45 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
       setMessages(prev =>
         prev.map(m =>
           m.id_message === messageToEdit.id_message
-            ? { ...m, contenu: editContent, date_modification: new Date() }
+            ? { ...m, contenu: editContent, date_modification: new Date(), id_status_msg: 6 }
             : m
         )
       );
 
       // SignalR pour notifier les autres (si connection présente)
       if (connection) {
-        connection.invoke("UpdateMessageContent", messageToEdit.id_message, editContent)
-          .catch(err => console.error("Erreur signalR UpdateMessageContent:", err));
+        connection.invoke("UpdateMessageContent",
+          messageToEdit.id_message,
+          editContent,
+          currentDiscussion?.type === 'groupe' ? currentDiscussion?.id : null
+        )
+          .catch(err => console.error(err));
+
       }
 
     } catch (err) {
       console.error(err);
     }
   };
+
+  const scrollToMessage = (messageId: number) => {
+    const el = messageRefs.current[messageId];
+
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      setHighlightedId(messageId);
+
+      setTimeout(() => {
+        setHighlightedId(null);
+      }, 2000);
+    }
+  };
+
+
 
 
 
@@ -453,21 +539,34 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
           {currentDiscussion ? `Discussion : ${currentDiscussion.nom}` : 'Aucune discussion sélectionnée'}
         </Typography>
 
-        {currentDiscussion?.type === 'groupe' && (
+        {currentDiscussion?.type && (
           <>
             <IconButton onClick={handleMenuOpen}>
               <MoreVertIcon />
             </IconButton>
+
             <Menu
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
+              <MenuItem onClick={handleOpenRecherche}>
+                Rechercher dans la discussion
+              </MenuItem>
 
-              <MenuItem onClick={handleOpenModal}>Membres</MenuItem>
+              {currentDiscussion?.type === 'groupe' && (
+                <MenuItem onClick={handleOpenModal}>Membres</MenuItem>
+              )}
             </Menu>
+
+            <RechercheMessage
+              open={openRecherche}
+              onClose={handleCloseRecherche}
+              discussion={currentDiscussion}
+              currentUser={currentUser}
+              token={token}
+              onSelectMessage={(msgId) => scrollToMessage(msgId)}
+            />
 
             {/* Modal des membres */}
             <ListeMembre
@@ -503,29 +602,21 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
         {messages.map((msg, idx) => {
           const isMine = msg.id_expediteur === currentUser.id;
           const isLastMine = isMine && msg.id_message === lastMyMessageId;
-
           const isFirstUnread = idx === firstUnreadIndex;
 
-          {
-            isMine && canEdit(msg) && (
-              <IconButton size="small" onClick={() => ouvrirModalEdit(msg)}>
-                <EditIcon fontSize="small" />
-              </IconButton>
-            )
-          }
-
+          const isDeleted = msg.id_status_msg === 5;
 
           return (
             <React.Fragment key={msg.id_message || idx}>
-              {/* Ligne de séparation "Nouveau" */}
+              <div
+                ref={(el) => {
+                  if (el) messageRefs.current[msg.id_message] = el;
+                }}
+              ></div>
+
+              {/* Ligne "Nouveau" */}
               {isFirstUnread && (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    my: 2,
-                  }}
-                >
+                <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
                   <Box sx={{ flex: 1, height: '1px', backgroundColor: '#ccc' }} />
                   <Typography
                     variant="caption"
@@ -543,48 +634,36 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                 </Box>
               )}
 
-              {/* Message normal */}
+              {/* Message aligné */}
               <Box sx={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
+
+                {/* WRAPPER QUI GÈRE LE HOVER */}
                 <Box
                   sx={{
                     display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: isMine ? 'flex-end' : 'flex-start',
+                    alignItems: 'center',
+                    gap: 1,
                     maxWidth: '70%',
-                    position: 'relative',
+                    "&:hover .edit-btn, &:hover .delete-btn": {
+                      opacity: 1,
+                      pointerEvents: "auto",
+                    }
                   }}
                 >
-                  {/* Bouton modifier */}
-                  {isMine && canEdit(msg) && (
-                    <IconButton
-                      size="small"
-                      onClick={() => ouvrirModalEdit(msg)}
-                      sx={{
-                        position: 'absolute',
-                        top: 0,
-                        right: 0,
-                      }}
-                      title="Modifier le message"
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  )}
-                  {/* Nom de l'expéditeur (groupe) */}
-                  {currentDiscussion?.type === 'groupe' && !isMine && (
-                    <Typography
-                      variant="caption"
-                      sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5, ml: 1 }}
-                    >
-                      {msg.nom_expediteur}
-                    </Typography>
-                  )}
 
-                  
+
+                  {/* BULLE DU MESSAGE */}
 
                   <Box
                     sx={{
-                      backgroundColor: isMine ? '#060a12db' : '#E5E5EA', // #060a12db, #1d2f54e8
-                      color: isMine ? 'white' : 'black',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      backgroundColor: isDeleted
+                        ? 'transparent'
+                        : isMine ? '#060a12db' : '#E5E5EA',
+                      color: isDeleted
+                        ? '#9e9e9e'
+                        : isMine ? 'white' : 'black',
                       px: 2,
                       py: 1.5,
                       borderRadius: 4,
@@ -593,12 +672,35 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                       borderBottomLeftRadius: 12,
                       borderBottomRightRadius: 12,
                       wordBreak: 'break-word',
-                      boxShadow: 2,
+                      boxShadow: isDeleted ? 'none' : 2,
                       width: '100%',
+                      position: "relative",
+                      border: isDeleted ? '1px dashed #bdbdbd' : 'none',
                     }}
                   >
-                    {/* Contenu ou pièce jointe */}
-                    {msg.piece_jointe ? (
+                    {/* Nom expéditeur (groupe) */}
+                    {currentDiscussion?.type === 'groupe' && !isMine && (
+                      <Typography
+                        variant="caption"
+                        sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5 }}
+                      >
+                        {msg.nom_expediteur}
+                      </Typography>
+                    )}
+
+                    {/* Fichier / Image / Texte */}
+                    {/* CONTENU */}
+                    {isDeleted ? (
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontStyle: 'italic',
+                          color: '#9e9e9e',
+                        }}
+                      >
+                        Message supprimé
+                      </Typography>
+                    ) : msg.piece_jointe ? (
                       /\.(png|jpg|jpeg|gif|bmp|webp|svg)$/i.test(msg.piece_jointe) ? (
                         <img
                           src={`${baseUrl}/Uploads/${msg.piece_jointe}`}
@@ -609,73 +711,118 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
                             cursor: "pointer",
                             boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
                           }}
-                          onClick={() => window.open(`${baseUrl}/Uploads/${msg.piece_jointe}`, "_blank")} />
+                          onClick={() => window.open(`${baseUrl}/Uploads/${msg.piece_jointe}`, "_blank")}
+                        />
                       ) : (
-                        <><a
-                          href={`${baseUrl}/Uploads/${msg.piece_jointe}`}
-                          // target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            textDecoration: 'none',
-                            backgroundColor: '#f5f5f5',
-                            padding: '8px 12px',
-                            borderRadius: 8,
-                            color: '#333',
-                            fontWeight: 500,
-                          }}
-                        >
-                          {getFileIcon(msg.piece_jointe)}
-                          {msg.nom_piece_jointe || msg.piece_jointe}
+                        <>
+                          <a
+                            href={`${baseUrl}/Uploads/${msg.piece_jointe}`}
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              textDecoration: 'none',
+                              backgroundColor: '#f5f5f5',
+                              padding: '8px 12px',
+                              borderRadius: 8,
+                              color: '#333',
+                              fontWeight: 500,
+                            }}
+                          >
+                            {getFileIcon(msg.piece_jointe)}
+                            {msg.nom_piece_jointe || msg.piece_jointe}
+                          </a>
 
-                        </a>
                           <IconButton onClick={() => handleDownload(msg.id_piece_jointe)}>
                             <DownloadIcon />
-                          </IconButton></>
-
+                          </IconButton>
+                        </>
                       )
-
                     ) : (
                       <Typography>{msg.contenu}</Typography>
-
                     )}
 
 
-                    <Typography
-                      variant="caption"
-                      sx={{ fontSize: '0.7rem', opacity: 0.6, textAlign: 'right', mt: 0.5 }}
-                    >
-                      {new Date(msg.date_envoie || msg.date).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0.5 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ fontSize: '0.7rem', opacity: 0.6 }}
+                      >
+                        {new Date(msg.date_envoie || msg.date).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                        {!isDeleted && (
+                          <> • {msg.id_status_msg === 1 ? 'Envoyé' : msg.id_status_msg === 6 ? 'Modifié' : ''}</>
+                        )}
+                      </Typography>
+                    </Box>
                   </Box>
 
-                  {/* VU affichage */}
-                  {isLastMine && msg.est_lu && currentDiscussion?.type === 'prive' && (
-                    <Typography
-                      variant="caption"
-                      sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5, ml: 1 }}
-                    >
-                      Vu
-                    </Typography>
+                  {isMine && !isDeleted && (
+                    <>
+                      {/* ✏️ EDIT */}
+                      <Tooltip title={canEdit(msg) ? "Modifier le message" : "Délai expiré"}>
+                        <span>
+                          <IconButton
+                            className="edit-btn"
+                            size="small"
+                            disabled={!canEdit(msg)}
+                            onClick={() => ouvrirModalEdit(msg)}
+                            sx={{
+                              opacity: 0,
+                              pointerEvents: canEdit(msg) ? "auto" : "none",
+                              transition: "opacity 0.2s",
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+
+                      {/* 🗑️ DELETE */}
+                      <Tooltip title="Supprimer le message">
+                        <IconButton
+                          className="delete-btn"
+                          size="small"
+                          onClick={() => handleDelete(msg.id_message)}
+                          sx={{
+                            opacity: 0,
+                            transition: "opacity 0.2s",
+                            color: "error.main",
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </>
                   )}
-                  {isLastMine && msg.est_lu && currentDiscussion?.type === 'groupe' && (
-                    <Typography
-                      variant="caption"
-                      sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5, ml: 1 }}
-                    >
-                      Vu par {msg.liste_utilisateur_vu?.join(", ")}
-                    </Typography>
-                  )}
+
+
+
+
+
                 </Box>
               </Box>
+
+              {/* VU */}
+              {isLastMine && msg.est_lu && currentDiscussion?.type === 'prive' && (
+                <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5 }}>
+                  Vu
+                </Typography>
+              )}
+
+              {isLastMine && msg.est_lu && currentDiscussion?.type === 'groupe' && (
+                <Typography variant="caption" sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.5 }}>
+                  Vu par {msg.liste_utilisateur_vu?.join(", ")}
+                </Typography>
+              )}
+
             </React.Fragment>
           );
         })}
+
 
 
       </Box>
