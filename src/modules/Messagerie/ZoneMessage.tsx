@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, Snackbar, TextField, Tooltip, Typography } from '@mui/material';
+import { Avatar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, Snackbar, TextField, Tooltip, Typography } from '@mui/material';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 import Picker from '@emoji-mart/react';
@@ -37,11 +37,12 @@ interface Discussion {
   id: number;
   nom: string;
   type: string;
+  matricule?: string;
 }
 
 interface ZoneMessagesProps {
   currentDiscussion: Discussion | null;
-  currentUser: { id: number; nom: string };
+  currentUser: { id: number; nom: string; matricule: string };
   token: string;
 }
 
@@ -519,6 +520,10 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   };
 
 
+  const getAvatarUrl = (code?: string) =>
+    code
+      ? `https://10.5.100.7:8888/api/Dossier/profil/${code}`
+      : "/avatar-default.png";
 
 
 
@@ -535,6 +540,16 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
     }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {currentDiscussion?.type === 'prive' && currentDiscussion?.matricule && (
+          <Avatar
+            src={getAvatarUrl(currentDiscussion.matricule)}
+            alt={currentDiscussion.matricule}
+            sx={{ width: 40, height: 40 }}
+          />
+        )}
+
+
+
         <Typography variant="h6">
           {currentDiscussion ? `Discussion : ${currentDiscussion.nom}` : 'Aucune discussion sélectionnée'}
         </Typography>
@@ -635,7 +650,15 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
               )}
 
               {/* Message aligné */}
-              <Box sx={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: isMine ? 'flex-end' : 'flex-start',
+                  gap: 1,
+                }}
+              >
+
 
                 {/* WRAPPER QUI GÈRE LE HOVER */}
                 <Box
@@ -653,6 +676,15 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
 
 
                   {/* BULLE DU MESSAGE */}
+                  {!isMine && currentDiscussion?.type === 'prive' && currentDiscussion.matricule && (
+                    <Avatar
+                      src={getAvatarUrl(msg.matricule_autre)}
+                      alt={msg.matricule_autre}
+                      sx={{ width: 32, height: 32 }}
+                    />
+                  )}
+
+
 
                   <Box
                     sx={{

@@ -14,7 +14,8 @@ const MessageriePage: React.FC<{ token: string }> = ({ token }) => {
 
   const currentUser = useMemo(() => ({
     id: profil?.id_utilisateur || profil?.id,
-    nom: `${profil?.prenom || ''} ${profil?.nom || ''}`
+    nom: `${profil?.prenom || ''} ${profil?.nom || ''}`,
+    matricule: profil?.matricule || `${profil?.prenom || ''} ${profil?.nom || ''}`
   }), [profil]);
 
   if (!profil || !token) return null; // ou un spinner de chargement

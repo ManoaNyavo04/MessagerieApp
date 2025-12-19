@@ -23,6 +23,7 @@ const RechercheMessage: React.FC<Props> = ({ open, onClose, discussion, currentU
         }
 
         const timer = setTimeout(() => {
+            
             searchMessages();
         }, 400); // debounce
 

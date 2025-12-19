@@ -16,6 +16,7 @@ interface Discussion {
   id: number;
   nom: string;
   type: string;
+  matricule?: string;
 }
 
 interface ListeDiscussionsProps {
@@ -213,6 +214,7 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
             id: result.id,
             nom: result.nom,
             type: result.type === "utilisateur" ? "prive" : "groupe",
+            matricule: result.matricule ?? null
           };
 
           return (
