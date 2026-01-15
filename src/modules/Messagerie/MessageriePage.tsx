@@ -10,7 +10,7 @@ import { addNavigation } from '../shared/Slices/listeNavigationSlice';
 const MessageriePage: React.FC<{ token: string }> = ({ token }) => {
   const [currentDiscussion, setCurrentDiscussion] = useState<any | null>(null);
 
-  const profil = useSelector((state: RootState) => state.auth.profilUtilisateur);
+  const profil = useSelector((state: RootState) => (state as any).auth.profilUtilisateur);
 
   const currentUser = useMemo(() => ({
     id: profil?.id_utilisateur || profil?.id,

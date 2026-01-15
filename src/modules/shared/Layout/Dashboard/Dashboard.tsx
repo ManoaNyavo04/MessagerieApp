@@ -87,11 +87,6 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
           width: theme.spacing(9),
         },
       }),
-      // ...(!open && {
-      //   [`@media (min-width: 500px)`]: {
-      //     width: 50,
-      //   },
-      // }),
       ...(!open && {
         [`@media (min-width: 500px)`]: {
           width: 50,
@@ -207,18 +202,8 @@ export default function Dashboard() {
                 ...(open && { display: 'none' }),
               }}
             >
-              {/* <img
-                src="/logo2.png"
-                alt="Logo2"
-                style={{ height: '50px', marginRight: '10%', textAlign: 'center' }}
-              /> */}
-              {/* <MenuIcon /> */}
 
             </IconButton>
-
-            {/* <IconButton onClick={toggleDrawer} sx={{ color: '#1d2f53', marginLeft: '-20px'}}>
-              <MenuIcon sx={{ color: '#cad2da', fontSize: '50px', width: '40px'}} />
-            </IconButton> */}
             <IconButton onClick={toggleDrawer} sx={{ color: '#1d2f53', ml: 2 }}>
               <MenuIcon sx={{ color: '#cad2da', fontSize: '40px' }} />
             </IconButton>
@@ -261,9 +246,6 @@ export default function Dashboard() {
               alt="Logo"
               style={{ height: '50px', marginRight: '65px', marginTop: '-8px', textAlign: 'center' }}
             />
-            {/* <IconButton onClick={toggleDrawer} sx={{ color: '#1d2f53'}}>
-              <MenuIcon sx={{ color: '#73879c', marginLeft : '-50px'}} />
-            </IconButton> */}
           </Toolbar>
           {/* <Divider /> */}
           <List component="nav">
@@ -296,10 +278,6 @@ export default function Dashboard() {
 
           <Box sx={{ mt: 1, mb: 3, p: 1 }}>
             <Box mb={1}>
-              {/* {profilUtilisateur?.id_role} */}
-              {/* {profilUtilisateur?.id_utilisateur} */}
-              {/* <BreadcrumbManager /> */}
-              {/* <BasicBreadcrumbs /> */}
             </Box>
             <Outlet />
             <Copyright sx={{ pt: 4 }} />

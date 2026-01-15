@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { getMesDiscussions, getUnreadCounts, markMessagesAsRead, searchUserGroup } from './MesDiscussion';
-import { Box, IconButton, List, ListItem, ListItemButton, ListItemText, Paper, TextField, Typography } from '@mui/material';
+import { Avatar, Box, IconButton, List, ListItem, ListItemButton, ListItemText, Paper, TextField, Typography } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import { searchUser } from '../Utilisateur/UtilisateurService';
@@ -137,172 +137,184 @@ const ListeDiscussion: React.FC<ListeDiscussionsProps> = ({ token, onSelectDiscu
     }
   };
 
+  const getAvatarUrl = (code?: string) =>
+    code
+      ? `https://10.5.100.7:8888/api/Dossier/profil/${code}`
+      : "/avatar-default.png";
+
   return (
-  <Paper
-    sx={{
-      p: 2,
-      height: "80vh",
-      overflowY: "auto",
-      background: "linear-gradient(180deg, #1c13131a 0%, #FFFFFF 100%)",
-      borderRadius: 3,
-      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-    }}
-  >
-    {/* --- Header --- */}
-    <Box
+    <Paper
       sx={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
+        p: 2,
+        height: "80vh",
+        overflowY: "auto",
+        background: "linear-gradient(180deg, #1c13131a 0%, #FFFFFF 100%)",
+        borderRadius: 3,
+        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
       }}
     >
-      <Typography
-        variant="h6"
-        gutterBottom
+      {/* --- Header --- */}
+      <Box
         sx={{
-          fontFamily: "Poppins, sans-serif",
-          fontWeight: 600,
-          color: "#060a12", // texte du titre
           display: "flex",
+          justifyContent: "space-between",
           alignItems: "center",
-          gap: 1,
         }}
       >
-        <ChatBubbleOutlineIcon fontSize="small" sx={{ color: "#060a12" }} />
-        Mes Discussions
-      </Typography>
-
-      <Tooltip title="Créer une discussion de groupe">
-        <IconButton
-          onClick={() => setOpenModal(true)}
+        <Typography
+          variant="h6"
+          gutterBottom
           sx={{
-            color: "#060a12",
-            transition: "0.3s",
-            "&:hover": {
-              backgroundColor: "rgba(6,10,18,0.1)",
-              transform: "scale(1.1)",
-            },
+            fontFamily: "Poppins, sans-serif",
+            fontWeight: 600,
+            color: "#060a12", // texte du titre
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
           }}
         >
-          <GroupAddIcon />
+          <ChatBubbleOutlineIcon fontSize="small" sx={{ color: "#060a12" }} />
+          Mes Discussions
+        </Typography>
+
+        <Tooltip title="Créer une discussion de groupe">
+          <IconButton
+            onClick={() => setOpenModal(true)}
+            sx={{
+              color: "#060a12",
+              transition: "0.3s",
+              "&:hover": {
+                backgroundColor: "rgba(6,10,18,0.1)",
+                transform: "scale(1.1)",
+              },
+            }}
+          >
+            <GroupAddIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      {/* --- Barre de recherche --- */}
+      <Box sx={{ display: "flex", mb: 2 }}>
+        <TextField
+          variant="outlined"
+          size="small"
+          fullWidth
+          placeholder="Rechercher par nom, prénom, matricule..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <IconButton sx={{ color: "#060a12" }}>
+          <SearchIcon />
         </IconButton>
-      </Tooltip>
-    </Box>
+      </Box>
 
-    {/* --- Barre de recherche --- */}
-    <Box sx={{ display: "flex", mb: 2 }}>
-      <TextField
-        variant="outlined"
-        size="small"
-        fullWidth
-        placeholder="Rechercher par nom, prénom, matricule..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      <IconButton sx={{ color: "#060a12" }}>
-        <SearchIcon />
-      </IconButton>
-    </Box>
+      {/* --- Liste des discussions --- */}
+      <List>
+        {/* Résultats de recherche */}
+        {searchResults.length > 0 &&
+          searchResults.map((result) => {
+            const id = `${result.type}-${result.id}`;
+            const discussion = {
+              id: result.id,
+              nom: result.nom,
+              type: result.type === "utilisateur" ? "prive" : "groupe",
+              matricule: result.matricule ?? null
+            };
 
-    {/* --- Liste des discussions --- */}
-    <List>
-      {/* Résultats de recherche */}
-      {searchResults.length > 0 &&
-        searchResults.map((result) => {
-          const id = `${result.type}-${result.id}`;
-          const discussion = {
-            id: result.id,
-            nom: result.nom,
-            type: result.type === "utilisateur" ? "prive" : "groupe",
-            matricule: result.matricule ?? null
-          };
+            return (
+              <ListItem key={id} disablePadding>
+                <ListItemButton
+                  onClick={() => handleSelectDiscussion(discussion)}
+                  sx={{
+                    "&:hover": { backgroundColor: "rgba(6,10,18,0.05)" },
+                  }}
+                >
+                  <><Avatar
+                    src={getAvatarUrl(discussion.matricule)}
+                    alt={discussion.matricule}
+                    sx={{ width: 40, height: 40 }} /></>
+                  <ListItemText
+                    primaryTypographyProps={{ sx: { color: "#060a12" } }}
+                    primary={discussion.nom}
+                  />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
 
-          return (
-            <ListItem key={id} disablePadding>
-              <ListItemButton
-                onClick={() => handleSelectDiscussion(discussion)}
-                sx={{
-                  "&:hover": { backgroundColor: "rgba(6,10,18,0.05)" },
-                }}
-              >
-                <ListItemText
-                  primaryTypographyProps={{ sx: { color: "#060a12" } }}
-                  primary={discussion.nom}
-                />
-              </ListItemButton>
-            </ListItem>
-          );
-        })}
+        {/* Discussions normales */}
+        {searchResults.length === 0 &&
+          discussions.map((discussion) => {
+            const id = `discussion-${discussion.id}`;
+            const unread = unreadCounts[`${discussion.type}-${discussion.id}`] || 0;
 
-      {/* Discussions normales */}
-      {searchResults.length === 0 &&
-        discussions.map((discussion) => {
-          const id = `discussion-${discussion.id}`;
-          const unread = unreadCounts[`${discussion.type}-${discussion.id}`] || 0;
+            return (
+              <ListItem key={id} disablePadding>
+                <ListItemButton
+                  onClick={() => handleSelectDiscussion(discussion)}
+                  sx={{
+                    "&:hover": { backgroundColor: "rgba(6,10,18,0.05)" },
+                  }}
+                >
+                  <ListItemText
+                    primaryTypographyProps={{ sx: { color: "#060a12" } }}
+                    primary={
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        {discussion.type === "groupe" ? (
+                          <GroupAddIcon fontSize="small" sx={{ color: "#1d2f54" }} />
+                        ) : (
+                          <><Avatar
+                            src={getAvatarUrl(discussion.matricule)}
+                            alt={discussion.matricule}
+                            sx={{ width: 40, height: 40 }} /></>
+                          // <PersonIcon fontSize="small" sx={{ color: "#060a12" }} />
+                        )}
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: unread > 0 ? "bold" : "normal",
+                            color: "#060a12",
+                          }}
+                        >
+                          {discussion.nom}
+                        </Typography>
+                      </Box>
+                    }
+                  />
 
-          return (
-            <ListItem key={id} disablePadding>
-              <ListItemButton
-                onClick={() => handleSelectDiscussion(discussion)}
-                sx={{
-                  "&:hover": { backgroundColor: "rgba(6,10,18,0.05)" },
-                }}
-              >
-                <ListItemText
-                  primaryTypographyProps={{ sx: { color: "#060a12" } }}
-                  primary={
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      {discussion.type === "groupe" ? (
-                        <GroupAddIcon fontSize="small" sx={{ color: "#1d2f54" }} />
-                      ) : (
-                        
-                        <PersonIcon fontSize="small" sx={{ color: "#060a12" }} />
-                      )}
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          fontWeight: unread > 0 ? "bold" : "normal",
-                          color: "#060a12",
-                        }}
-                      >
-                        {discussion.nom}
-                      </Typography>
+                  {unread > 0 && (
+                    <Box
+                      sx={{
+                        backgroundColor: "red",
+                        color: "white",
+                        borderRadius: "50%",
+                        px: 1,
+                        fontSize: "0.8rem",
+                        minWidth: "20px",
+                        textAlign: "center",
+                      }}
+                    >
+                      {unread}
                     </Box>
-                  }
-                />
+                  )}
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
+      </List>
 
-                {unread > 0 && (
-                  <Box
-                    sx={{
-                      backgroundColor: "red",
-                      color: "white",
-                      borderRadius: "50%",
-                      px: 1,
-                      fontSize: "0.8rem",
-                      minWidth: "20px",
-                      textAlign: "center",
-                    }}
-                  >
-                    {unread}
-                  </Box>
-                )}
-              </ListItemButton>
-            </ListItem>
-          );
-        })}
-    </List>
-
-    <CreerGroupeModal
-      open={openModal}
-      onClose={() => setOpenModal(false)}
-      token={token}
-      onGroupCreated={async () => {
-        const updated = await getMesDiscussions(token);
-        setDiscussions(updated);
-      }}
-    />
-  </Paper>
-);
+      <CreerGroupeModal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        token={token}
+        onGroupCreated={async () => {
+          const updated = await getMesDiscussions(token);
+          setDiscussions(updated);
+        }}
+      />
+    </Paper>
+  );
 
 };
 

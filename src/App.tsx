@@ -19,12 +19,12 @@ import { RootState } from './modules/shared/Store/store';
 import { SignalRProvider } from './contexts/SignalRContext';
 import ListeMembre from './modules/EspaceTravail/ListeMembre';
 import ListePoleEspaceTravail from './modules/EspaceTravail/ListePoleEspaceTravail';
+import ProfilUtilisateur from './modules/Utilisateur/ProfilUtilisateur';
 
 
 
 function App() {
   const dispatch = useAppDispatch(); 
-  // const token = localStorage.getItem('token');
   const token = useSelector((state: RootState) => state.auth.token);
 
   return (
@@ -33,32 +33,23 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
-          {/* Admin Routes */}
           <Route element={<AdminRoute />}>
           <Route element={<Dashboard />}>
             <Route path="/admin" element={<AdminHome />} />
             <Route path="/gestion-utilisateur" element={<PageUtilisateur />} />
           </Route>
           
-          {/* <Route path="/messagerie" element={<Messagerie />} /> */}
-          {/* ...autres routes admin */}
         </Route>
 
         <Route element={<PrivateRoute />}>
           <Route element={<Dashboard />}>
-            {/* <Route path="/messagerie" element={<Messagerie />} /> */}
             <Route path="/messagerie" element={<MessageriePage token={token || ''} />} />
             <Route path="/membre-espace-travail" element={<ListeMembre />} />
             <Route path="/espace-travail" element={<ListePoleEspaceTravail />} />
+            <Route path="/me" element={<ProfilUtilisateur />} />
           </Route>
         </Route>
 
-
-        {/* User Routes */}
-        {/* <Route element={<UserRoute />}>
-          <Route path="/user" element={<UserHome />} />
-          <Route path="/messagerie" element={<Messagerie />} />
-        </Route> */}
       </Routes>
 
     </BrowserRouter>

@@ -56,6 +56,17 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   const [openRecherche, setOpenRecherche] = useState(false);
   const messageRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
+  const currentDiscussionRef = useRef(currentDiscussion);
+  const currentUserRef = useRef(currentUser);
+
+  useEffect(() => {
+    currentDiscussionRef.current = currentDiscussion;
+  }, [currentDiscussion]);
+
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
 
 
 
@@ -188,95 +199,129 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   };
 
 
-  useEffect(() => {
-    if ("Notification" in window && Notification.permission !== "granted") {
-      Notification.requestPermission().then((perm) => {
-        console.log("Permission notifications :", perm);
-      });
-    }
-  }, []);
+  const showDesktopNotification = (
+    senderName: string,
+    message: string,
+    avatarCode?: string
+  ) => {
+    if (!("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+
+    const avatarUrl = getAvatarUrl(avatarCode);
+
+    const notification = new Notification(`💬 ${senderName}`, {
+      body: message,
+      icon: avatarUrl,      // ✅ AVATAR ICI
+      badge: "/logo2.png",  // optionnel (Android / Chrome)
+      requireInteraction: true, // reste affichée jusqu'au clic
+      silent: false,
+    });
+
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+
+  };
+
+  const debugNotification = (
+    senderName: string,
+    message: string,
+    reason: string
+  ) => {
+    console.log(
+      "%c[NOTIFICATION]",
+      "color: green; font-weight: bold;",
+      {
+        sender: senderName,
+        message,
+        reason,
+        time: new Date().toLocaleTimeString(),
+      }
+    );
+  };
+
+
+
+
+  const getAvatarUrl = (code?: string) =>
+    code
+      ? `https://10.5.100.7:8888/api/Dossier/profil/${code}`
+      : "/avatar-default.png";
+
+
+
 
 
 
   const connection = useSignalR();
-
   useEffect(() => {
-    if (!connection || connection.state !== HubConnectionState.Connected || !currentDiscussion) {
-      return;
-    }
-
-    if (currentDiscussion.type === 'groupe') {
-      const groupName = currentDiscussion.nom;
-      console.log(`✅ Rejoint le groupe : ${groupName}`);
-      connection.invoke("JoinGroup", groupName)
-        .then(() => console.log(`✅ Rejoint le groupe : ${groupName}`))
-        .catch(err => console.error("❌ Erreur joinGroup :", err));
-    }
+    if (!connection) return;
 
     const handler = (msg: any) => {
-      // Ne pas afficher deux fois
+      console.log(
+        "%c[SignalR] ReceiveMessage",
+        "color: blue; font-weight: bold;",
+        msg
+      );
+
       const mappedMsg = mapMessage(msg);
 
+      // 1️⃣ Ajout du message
       setMessages(prev => {
-        const exists = prev.find(m => m.id_message === mappedMsg.id_message);
-        if (exists) {
-          // Fusionne les nouvelles infos (utile pour UpdateMessage déguisé en ReceiveMessage)
-          return prev.map(m =>
-            m.id_message === mappedMsg.id_message
-              ? { ...m, ...mappedMsg }
-              : m
-          );
+        if (prev.some(m => m.id_message === mappedMsg.id_message)) {
+          return prev;
         }
         return [...prev, mappedMsg];
       });
 
-      // Affiche la notification si le message est reçu par CE client
-      const isForThisUser = mappedMsg.id_destinataire === currentUser.id ||
-        (mappedMsg.liste_destinataires?.includes?.(currentUser.id));
-      const isGroupMsg = mappedMsg.id_groupe_discussion && mappedMsg.id_expediteur !== currentUser.id;
+      const currentDiscussion = currentDiscussionRef.current;
+      const currentUser = currentUserRef.current;
 
+      if (!currentDiscussion || !currentUser) return;
 
-      const isFromSomeoneElse = msg.id_expediteur !== currentUser.id;
+      const isSameDiscussion =
+        (
+          currentDiscussion.type === "prive" &&
+          !msg.id_groupe_discussion &&
+          (
+            msg.id_expediteur === currentDiscussion.id ||
+            msg.id_destinataire === currentDiscussion.id
+          )
+        )
+        ||
+        (
+          currentDiscussion.type === "groupe" &&
+          msg.id_groupe_discussion === currentDiscussion.id
+        );
 
-      console.log("🔔 Handler déclenché");
-      console.log("msg.id_destinataire", msg.id_destinataire);
-      console.log("currentUser.id", currentUser.id);
-      console.log("liste_destinataires", msg.liste_destinataires);
-      console.log("isForThisUser:", isForThisUser);
-      console.log("isGroupMsg:", isGroupMsg);
-      console.log("isFromSomeoneElse:", isFromSomeoneElse);
+      console.log("[CHECK] Même discussion ?", isSameDiscussion);
 
-      if (isForThisUser && isFromSomeoneElse && Notification.permission === "granted") {
-        const notif = new Notification(`💬 ${msg.nom_expediteur}`, {
-          body: msg.contenu,
-          icon: "/logo2.png",
-          requireInteraction: true,
-        });
-
-        notif.onclick = () => {
-          window.focus();
-          notif.close();
-        };
+      if (msg.id_expediteur === currentUser.id) {
+        console.log("[NOTIFY] ❌ Moi-même");
+        return;
       }
-    };
 
-
-    const markAsRead = async () => {
-      if (currentDiscussion) {
-        await markMessagesAsRead(token, currentDiscussion.id, currentDiscussion.type);
+      if (isSameDiscussion) {
+        console.log("[NOTIFY] ❌ Discussion ouverte");
+        return;
       }
-    };
 
-    markAsRead();
+      console.log("[NOTIFY] ✅ Fake notification");
+
+      debugNotification(
+        msg.expediteur_nom ?? msg.nom_expediteur ?? "Inconnu",
+        msg.contenu,
+        "Nouveau message hors discussion active"
+      );
+    };
 
     connection.on("ReceiveMessage", handler);
-    connection.on("MessagesRead", handler);
 
     return () => {
       connection.off("ReceiveMessage", handler);
     };
-  }, [connection, currentDiscussion, currentUser]);
-
+  }, [connection]);
 
   useEffect(() => {
     if (!connection) return;
@@ -324,7 +369,7 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
         idGroupe,
         message,
         groupName,
-        false
+        true
       );
 
       let finalPayload = response;
@@ -405,20 +450,6 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
       console.error("Erreur download :", err);
     }
   };
-
-  // const normalizeDate = (dateStr: string | null) => {
-  //   if (!dateStr) return null;
-
-  //   // Corrige format "YYYY-MM-DD HH:mm:ss"
-  //   // const normalized = dateStr.replace(" ", "T");
-  //   const normalized = dateStr.replace(" ", "T") + "Z"; // force UTC
-
-  //   const d = new Date(normalized);
-
-  //   if (isNaN(d.getTime())) return null;
-
-  //   return d;
-  // };
 
 
 
@@ -520,10 +551,6 @@ const ZoneMessage: React.FC<ZoneMessagesProps> = ({ currentDiscussion, currentUs
   };
 
 
-  const getAvatarUrl = (code?: string) =>
-    code
-      ? `https://10.5.100.7:8888/api/Dossier/profil/${code}`
-      : "/avatar-default.png";
 
 
 

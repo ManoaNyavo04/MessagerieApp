@@ -8,20 +8,20 @@ export const useSignalR = () => useContext(SignalRContext);
 
 interface SignalRProviderProps {
   children: React.ReactNode;
-  token: string; // 🔹 on reçoit le token ici
+  token: string;
 }
 
 export const SignalRProvider: React.FC<SignalRProviderProps> = ({ children, token }) => {
   const [connection, setConnection] = useState<HubConnection | null>(null);
 
   useEffect(() => {
-    if (!token) return; // ne pas connecter si pas de token
+    if (!token) return;
 
     const conn = new HubConnectionBuilder()
       .withUrl(`${baseUrl}/chathub`, {
-        accessTokenFactory: () => token // 🔹 on fournit le token
+        accessTokenFactory: () => token 
       })
-      .withAutomaticReconnect() // 🔹 reconnexion automatique
+      .withAutomaticReconnect() 
       .build();
 
     conn.start()
@@ -34,7 +34,7 @@ export const SignalRProvider: React.FC<SignalRProviderProps> = ({ children, toke
       conn.stop().catch(err => console.error("Erreur arrêt connexion SignalR:", err));
     };
 
-  }, [token]); // 🔹 recrée connexion si le token change
+  }, [token]); 
 
   return (
     <SignalRContext.Provider value={connection}>

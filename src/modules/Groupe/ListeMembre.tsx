@@ -60,22 +60,6 @@ const ListeMembre: React.FC<ListeMembreProps> = ({ open, handleClose, idGroupe, 
         }, 400);
     }, [open, step, token, idGroupe, searchTerm]);
 
-    /*useEffect(() => {
-        if (!searchTerm.trim()) return;
-
-        const timeout = setTimeout(async () => {
-            try {
-                const res = await searchUser(token, searchTerm);
-                console.log('Résultat de recherche :', res);
-
-                setUserResults(res);
-            } catch (err) {
-                console.error("Erreur recherche utilisateurs :", err);
-            }
-        }, 400);
-
-        return () => clearTimeout(timeout);
-    }, [searchTerm, token]);*/
 
     const toggleSelect = (user: User) => {
         const exists = selectedUserIds.includes(user.id_utilisateur);

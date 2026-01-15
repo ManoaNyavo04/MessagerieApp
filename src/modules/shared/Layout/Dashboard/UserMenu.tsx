@@ -53,6 +53,20 @@ const UserMenu = () => {
           </ListItemButton>
         </SelectBox>
       </StyledLink>
+
+      {/* ======= MENU : Membre Espace de travail ======= */}
+      <StyledLink to={"/me"}>
+        <SelectBox onClick={() => { addNavigation({ title: "Profil", link: "", isActive: true }); }}>
+          <ListItemButton>
+            <ListItemIcon sx={{ marginRight: -2.5 }}>
+              <Tooltip title="Profil" arrow placement="right">
+                <GroupAddIcon sx={{ color: 'white' }} /> 
+              </Tooltip>
+            </ListItemIcon>
+            <ListItemText primaryTypographyProps={{ sx: { fontWeight: 'bold' } }} primary="Profil" />
+          </ListItemButton>
+        </SelectBox>
+      </StyledLink>
     </>
   );
 };

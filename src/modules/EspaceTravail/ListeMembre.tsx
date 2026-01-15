@@ -1,4 +1,4 @@
-import { Alert, Button, Chip, Grid, Menu, Paper, Snackbar } from '@mui/material';
+import { Alert, Avatar, Button, Chip, Grid, Menu, Paper, Snackbar } from '@mui/material';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import React, { useEffect, useState } from 'react'
 import GenericList from '../shared/components/GenericList';
@@ -44,15 +44,32 @@ const ListeMembre = ({ onClose }: ListeMembreProps) => {
             });
     }, []);
 
+    const getAvatarUrl = (code?: string) =>
+        code
+            ? `https://10.5.100.7:8888/api/Dossier/profil/${code}`
+            : "/avatar-default.png";
+
     const columns = [
-        {field: "icon", headerName: "", width: 50, sortable: false, renderCell: () => <Chip
-              icon={<AdminPanelSettingsIcon style={{ color: 'f87171', fontSize: 18 }} />}
-              
-            /> },
+        {
+            field: "avatar",
+            headerName: "",
+            width: 60,
+            sortable: false,
+            renderCell: (params: any) => (
+                <Avatar
+                    src={getAvatarUrl(params.row.matricule)}
+                    alt={params.row.matricule}
+                    sx={{ width: 36, height: 36 }}
+                />
+            ),
+        },
         { field: "matricule", headerName: "Matricule", width: 150, sortable: true },
         { field: "nom", headerName: "Nom", width: 150, sortable: true },
         { field: "prenom", headerName: "Prénom", width: 150, sortable: true },
     ];
+
+
+
     return (
         <>
             <Grid container spacing={1} sx={{ mt: 4 }}>
@@ -63,7 +80,7 @@ const ListeMembre = ({ onClose }: ListeMembreProps) => {
                             Membres de l'espace de travail
                         </h3>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 15 }}>
-                            
+
                         </div>
 
                         <GenericList<EspaceTravailMembre>
